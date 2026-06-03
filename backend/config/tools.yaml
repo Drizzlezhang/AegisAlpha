@@ -1,0 +1,25 @@
+# Aegis 2.0 — Tool Registry Configuration
+# 所有外部数据源 Tool 在此注册
+# 新增 Tool 必须包含: name / class / category / tags / fallback / circuit_breaker / rate_limit / bound_agents
+
+categories:
+  - market_data
+  - macro
+  - sentiment
+  - flows
+  - liquidity
+  - options_chain
+
+tools:
+  # 示例 Tool 条目（M1 分支 A 填充）
+  # - name: yfinance
+  #   class: aegis.tools.market_data.yfinance.YFinanceTool
+  #   category: market_data
+  #   tags: [ohlcv, fundamentals, options_chain]
+  #   fallback: alpha_vantage
+  #   circuit_breaker:
+  #     failure_threshold: 3
+  #     recovery_timeout_sec: 300
+  #   rate_limit:
+  #     max_calls_per_minute: 5
+  #   bound_agents: [data_harvester, trend_phase]

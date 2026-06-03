@@ -1,0 +1,28 @@
+# Aegis 2.0 — APScheduler Configuration
+# Full Pipeline + Lightweight Pipeline + Trigger Check 三套 cron
+
+schedules:
+  full_pipeline:
+    pre_market:
+      cron: "0 8 * * 1-5"  # 美东 8:00 盘前
+      timezone: "US/Eastern"
+      enabled: true
+    post_market:
+      cron: "0 17 * * 1-5"  # 美东 17:00 盘后
+      timezone: "US/Eastern"
+      enabled: true
+
+  lightweight_pipeline:
+    pre_market:
+      cron: "0 8 * * 1-5"
+      timezone: "US/Eastern"
+      enabled: true
+    post_market:
+      cron: "0 17 * * 1-5"
+      timezone: "US/Eastern"
+      enabled: true
+
+  trigger_check:
+    cron: "0 * * * *"  # 每小时
+    timezone: "US/Eastern"
+    enabled: false  # M2 启用

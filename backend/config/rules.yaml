@@ -1,0 +1,36 @@
+# Aegis 2.0 — Trading Rules Configuration
+# 交易规则、风控参数、策略阈值
+
+rules:
+  # 风控规则
+  risk_gate:
+    max_total_position_pct: 0.80
+    min_cash_pct: 0.20
+    blacklist_tickers: []
+    leaps_min_dte: 360
+    vix_max: 30
+    vix_daily_change_max_pct: 0.20
+    fomc_blackout_hours: 24
+    earnings_blackout_hours: 48
+    delta_dollars_budget_pct: 0.30
+    iv_crush_percentile_threshold: 90
+    post_close_cooldown_days: 7
+
+  # 策略参数
+  strategies:
+    leaps_call:
+      otm_min_pct: 0.10
+      otm_max_pct: 0.30
+      dte_min: 360
+      max_hold_months: 6
+    covered_call:
+      require_sideways: true
+      require_resistance: true
+      require_high_iv: true
+    sell_put:
+      enabled: false
+
+  # 动态止损
+  stop_loss:
+    default_fixed_pct: 0.08
+    support_based_enabled: true
