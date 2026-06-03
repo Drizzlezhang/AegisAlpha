@@ -23,6 +23,10 @@ dependencies = [
     "pandas>=2.2",
     "pyarrow>=17.0",
     "chromadb>=0.5",
+    "yfinance>=1.4.1",
+    "alpha-vantage>=3.0.0",
+    "fredapi>=0.5.2",
+    "tavily-python>=0.7.25",
 ]
 
 [dependency-groups]
@@ -83,5 +87,8 @@ module = [
     "jinja2",
     "pandas",
     "yaml",
+    "yfinance",
+    "fredapi",
+    "tavily",
 ]
 ignore_missing_imports = true

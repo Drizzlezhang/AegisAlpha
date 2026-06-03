@@ -1,4 +1,5 @@
 """Frozen at M1 v1.0. Changes require owner review."""
+
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -17,5 +18,4 @@ class BaseTool(ABC):
     name: str = "base"
 
     @abstractmethod
-    async def fetch(self, **kwargs: Any) -> ToolResult:
-        ...
+    async def fetch(self, **kwargs: Any) -> ToolResult: ...

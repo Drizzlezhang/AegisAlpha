@@ -1,7 +1,8 @@
 # .specs State
 
 ## Active Change
-- **change_id**: init-dev-env-config
-- **current_stage**: 6-SHIP (completed)
-- **updated_at**: 2026-06-03T08:01:00+08:00
+- **change_id**: m1-debate-agent
+- **current_stage**: 5-VERIFY
+- **status**: in_progress
+- **updated_at**: 2026-06-03T09:30:00Z
 - **restore_mode**: new

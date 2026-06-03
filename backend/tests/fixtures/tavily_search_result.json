@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "title": "QQQ ETF: Strong Earnings Growth Expected in 2026",
+      "url": "https://example.com/qqq-earnings-2026",
+      "content": "Analysts project robust earnings growth for QQQ holdings in 2026, driven by AI and cloud computing sectors.",
+      "score": 0.92
+    },
+    {
+      "title": "Fed Policy Impact on QQQ Performance",
+      "url": "https://example.com/fed-qqq-impact",
+      "content": "The Federal Reserve's recent policy shift may benefit growth stocks in the QQQ ETF.",
+      "score": 0.85
+    }
+  ],
+  "query": "QQQ earnings forecast 2026"
+}
