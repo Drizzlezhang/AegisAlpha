@@ -1,0 +1,23 @@
+{
+  "positions": [
+    {
+      "ticker": "QQQ",
+      "quantity": 100,
+      "avg_cost": 380.0,
+      "current_price": 420.0,
+      "entry_mode": "passive",
+      "dte": null
+    },
+    {
+      "ticker": "QQQ",
+      "quantity": 2,
+      "avg_cost": 15.0,
+      "current_price": 18.5,
+      "entry_mode": "active_left",
+      "dte": 365,
+      "strike": 400,
+      "expiration": "2027-06-15",
+      "type": "call"
+    }
+  ]
+}

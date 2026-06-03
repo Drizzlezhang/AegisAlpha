@@ -3,14 +3,24 @@
 # 新增 Agent 必须包含: name / version / requires / provides / tags / llm_dependency / parallel_group / pipeline_mode / enabled
 
 agents:
-  # 示例 Agent 条目（M1 各分支填充）
-  # data_harvester:
-  #   name: data_harvester
-  #   version: "0.1.0"
-  #   requires: [tickers]
-  #   provides: [market_data, macro_data]
-  #   tags: [data, market, macro]
-  #   llm_dependency: false
-  #   parallel_group: null
-  #   pipeline_mode: both
-  #   enabled: true
+  data_harvester:
+    name: data_harvester
+    version: "0.1.0"
+    requires: []
+    provides: [market_data, macro_data]
+    tags: [data, harvester]
+    llm_dependency: false
+    parallel_group: null
+    pipeline_mode: both
+    enabled: true
+
+  portfolio_orchestrator:
+    name: portfolio_orchestrator
+    version: "0.1.0"
+    requires: []
+    provides: [tickers_holdings_active, tickers_holdings_passive, entry_mode, health_scores, positions]
+    tags: [portfolio, orchestrator]
+    llm_dependency: false
+    parallel_group: null
+    pipeline_mode: both
+    enabled: true
