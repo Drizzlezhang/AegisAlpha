@@ -1,0 +1,11 @@
+{
+  "QQQ": {
+    "factor_scores": [
+      {"factor": "momentum", "score": 72, "confidence": 0.80, "rationale": "20-day MA above 50-day MA, positive slope"},
+      {"factor": "value", "score": 45, "confidence": 0.65, "rationale": "P/E above 5-year average"},
+      {"factor": "macro", "score": 60, "confidence": 0.70, "rationale": "Fed neutral, VIX moderate"},
+      {"factor": "sentiment", "score": 55, "confidence": 0.60, "rationale": "Mixed analyst ratings"},
+      {"factor": "technical", "score": 68, "confidence": 0.75, "rationale": "RSI 58, MACD bullish crossover"}
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "early_stop_round1": {
+    "direction": "bullish",
+    "confidence": 0.90,
+    "rationale": "Strong bullish momentum with technical confirmation",
+    "rounds_used": 1,
+    "entry_mode_hint": ""
+  },
+  "early_stop_round2": {
+    "direction": "bullish",
+    "confidence": 0.88,
+    "rationale": "Bull maintains advantage across two rounds",
+    "rounds_used": 2,
+    "entry_mode_hint": ""
+  },
+  "max_rounds_round1": {
+    "direction": "bullish",
+    "confidence": 0.70,
+    "rationale": "Slight bullish edge but not decisive",
+    "rounds_used": 1,
+    "entry_mode_hint": ""
+  },
+  "max_rounds_round2": {
+    "direction": "bearish",
+    "confidence": 0.65,
+    "rationale": "Bear raised valid macro concerns",
+    "rounds_used": 2,
+    "entry_mode_hint": ""
+  },
+  "max_rounds_round3": {
+    "direction": "bullish",
+    "confidence": 0.75,
+    "rationale": "Bull ultimately prevails after three rounds",
+    "rounds_used": 3,
+    "entry_mode_hint": ""
+  }
+}

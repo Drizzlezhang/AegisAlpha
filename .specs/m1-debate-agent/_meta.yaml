@@ -1,0 +1,15 @@
+schema_version: 2
+change_id: "m1-debate-agent"
+size: "S"
+stages: ["0-CHANGE", "1-SPEC", "4-BUILD", "5-VERIFY", "6-SHIP"]
+current_stage: "5-VERIFY"
+status: "active"
+created_at: "2026-06-03T09:10:00Z"
+updated_at: "2026-06-03T09:30:00Z"
+retry_count: 0
+last_tldr: "4-BUILD 完成：DebateAgent + 3 prompt 模板 + 5 测试全绿，ruff/mypy clean"
+last_next: "进入 5-VERIFY，验证所有 AC，然后 6-SHIP commit + push"
+last_risk: "无阻塞风险"
+last_progress_note: "46/46 tests pass, ruff clean, mypy clean"
+last_context_mode: "full"
+last_verified_at: ""
