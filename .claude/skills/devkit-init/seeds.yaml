@@ -1,0 +1,305 @@
+seeds:
+  # ── 开发方法论 ──
+  - name: superpowers
+    description: "TDD + 多 agent 软件开发方法论：brainstorm → plan → subagent → review → merge"
+    source: "github.com/obra/superpowers"
+    install: "npx skills add obra/superpowers"
+    stars: 190000
+    priority: 1
+
+  - name: everything-claude-code
+    description: "28 agent + 119 skill + 60 command 全能工程套件，四档安装"
+    source: "github.com/affaan-m/everything-claude-code"
+    install: "/plugin install everything-claude-code@claude-plugins-official"
+    stars: 180000
+    priority: 2
+
+  - name: andrej-karpathy-skills
+    description: "基于 Karpathy 对 LLM 编码陷阱的观察，一个 CLAUDE.md 改善代码质量"
+    source: "github.com/grp/andrej-karpathy-skills"
+    install: "npx skills add grp/andrej-karpathy-skills"
+    stars: 126000
+    priority: 3
+
+  # ── UI/UX 设计 ──
+  - name: frontend-design
+    description: "Anthropic 官方：反 AI slop 的前端设计 skill，推动个性化视觉风格"
+    source: "github.com/anthropics/skills"
+    install: "/plugin install frontend-design@claude-plugins-official"
+    stars: 134000
+    priority: 4
+    when:
+      has_file: "package.json"
+
+  - name: ui-ux-pro-max
+    description: "多平台专业 UI/UX 设计智能，覆盖 Web/iOS/Android/Desktop"
+    source: "github.com/ipenywis/ui-ux-pro-max-skill"
+    install: "npx skills add ipenywis/ui-ux-pro-max-skill"
+    stars: 77000
+    priority: 5
+    when:
+      has_file: "package.json"
+
+  # ── 跨会话记忆 ──
+  - name: claude-mem
+    description: "跨会话持久化记忆：自动捕获 → AI 压缩 → 向量搜索注入未来会话"
+    source: "github.com/thedotmack/claude-mem"
+    install: "npx claude-mem install"
+    stars: 75000
+    priority: 6
+
+  # ── Token 优化 ──
+  - name: caveman
+    description: "用简化语法减少 65% token 消耗，显著降低 API 成本"
+    source: "github.com/juliusbrussee/caveman"
+    install: "/plugin install caveman"
+    stars: 58000
+    priority: 7
+
+  # ── 文档上下文 ──
+  - name: context7
+    description: "实时拉取版本匹配的第三方库文档到 LLM 上下文，减少幻觉"
+    source: "github.com/upstash/context7"
+    install: "/plugin install context7@claude-plugins-official"
+    stars: 55000
+    priority: 8
+
+  # ── 敏捷方法论 ──
+  - name: bmad-method
+    description: "AI 驱动敏捷开发方法论：Breakthrough Method for Agile AI-Driven Development"
+    source: "github.com/bmad-method/BMAD-METHOD"
+    install: "npx skills add bmad-method/BMAD-METHOD"
+    stars: 47000
+    priority: 9
+    when:
+      scale_gte: "M"
+
+  # ── 浏览器调试 ──
+  - name: chrome-devtools-mcp
+    description: "在 agent 中控制 Chrome DevTools：性能追踪/网络分析/控制台/Puppeteer"
+    source: "github.com/anthropics/chrome-devtools-mcp"
+    install: "/plugin install chrome-devtools-mcp@claude-plugins-official"
+    stars: 39000
+    priority: 10
+    when:
+      has_file: "package.json"
+
+  # ── 文档处理（官方） ──
+  - name: document-skills
+    description: "Anthropic 官方文档 skill：PDF/DOCX/XLSX/PPTX 创建/解析/编辑"
+    source: "github.com/anthropics/skills"
+    install: "/plugin install document-skills@anthropic-agent-skills"
+    stars: 134000
+    priority: 11
+
+  # ── 代码打包 ──
+  - name: repomix
+    description: "将整个仓库打包为单个 AI 友好文件，适配所有主流 LLM"
+    source: "github.com/yamadashy/repomix"
+    install: "/plugin install repomix@claude-plugins-official"
+    stars: 25000
+    priority: 12
+
+  # ── AI 测试 ──
+  - name: promptfoo
+    description: "Prompt/Agent/RAG 测试框架 + 红队安全扫描，OpenAI/Anthropic 都在用"
+    source: "github.com/promptfoo/promptfoo"
+    install: "/plugin install promptfoo@claude-plugins-official"
+    stars: 21000
+    priority: 13
+    when:
+      scale_gte: "M"
+
+  # ── Markdown 规划 ──
+  - name: planning-with-files
+    description: "Manus 风格持久化 markdown 规划工作流"
+    source: "github.com/planning-with-files/planning-with-files"
+    install: "npx skills add planning-with-files/planning-with-files"
+    stars: 21000
+    priority: 14
+
+  # ── PPT 生成 ──
+  - name: ppt-master
+    description: "AI 生成原生可编辑 PPTX：真实 PowerPoint 形状 + 原生动画"
+    source: "github.com/ppt-master/ppt-master"
+    install: "npx skills add ppt-master/ppt-master"
+    stars: 15000
+    priority: 15
+
+  # ── 工程全生命周期（Matt Pocock） ──
+  - name: mattpocock-skills
+    description: "TypeScript 教父出品 18 skill：grill-me/tdd/write-a-prd/diagnose/improve-codebase-architecture 等"
+    source: "github.com/mattpocock/skills"
+    install: "npx skills add mattpocock/skills"
+    stars: 68000
+    priority: 16
+
+  # ── 元提示 + 上下文工程 ──
+  - name: get-shit-done
+    description: "轻量级元提示 + spec 驱动开发系统，解决长会话上下文腐化，支持 14 种运行时"
+    source: "github.com/gsd-build/get-shit-done"
+    install: "npx get-shit-done-cc@latest"
+    stars: 61000
+    priority: 17
+
+  # ── 工程 Skill（Addy Osmani） ──
+  - name: addy-agent-skills
+    description: "Google Chrome 工程总监出品 22 个生产级 skill：spec→plan→build→test→review→ship 全生命周期"
+    source: "github.com/addyosmani/agent-skills"
+    install: "npx skills add addyosmani/agent-skills"
+    stars: 38000
+    priority: 18
+
+  # ── HTML 原生设计 ──
+  - name: huashu-design
+    description: "HTML 原生设计 skill：高保真原型/幻灯片/动画 + 20 设计哲学 + MP4 导出"
+    source: "github.com/alchaincyf/huashu-design"
+    install: "npx skills add alchaincyf/huashu-design"
+    stars: 11000
+    priority: 19
+    when:
+      has_file: "package.json"
+
+  # ── ML/AI 生态 ──
+  - name: huggingface-skills
+    description: "Hugging Face 生态 skill：训练/评估/部署开源 AI 模型"
+    source: "github.com/huggingface/skills"
+    install: "/plugin install huggingface-skills@claude-plugins-official"
+    stars: 10000
+    priority: 20
+    when:
+      language: "python"
+
+  # ── MCP: 文档上下文 ──
+  - name: context7-mcp
+    type: mcp
+    description: "MCP server：实时拉取版本匹配的第三方库文档，减少 API 幻觉"
+    source: "github.com/upstash/context7"
+    install: "claude mcp add --transport stdio context7 -- npx -y @upstash/context7-mcp"
+    stars: 55000
+    priority: 21
+    mcp_config:
+      transport: stdio
+      command: npx
+      args: ["-y", "@upstash/context7-mcp"]
+      scope: user
+    requires_auth: false
+
+  # ── MCP: GitHub ──
+  - name: github-mcp
+    type: mcp
+    description: "MCP server：GitHub Issues/PR/代码搜索/Actions，开发者日常必备"
+    source: "github.com/modelcontextprotocol/servers"
+    install: "claude mcp add --transport http github https://api.githubcopilot.com/mcp/"
+    stars: 40000
+    priority: 22
+    mcp_config:
+      transport: http
+      url: "https://api.githubcopilot.com/mcp/"
+      env_keys: ["GITHUB_PERSONAL_ACCESS_TOKEN"]
+      scope: user
+    requires_auth: true
+
+  # ── MCP: Playwright 浏览器自动化 ──
+  - name: playwright-mcp
+    type: mcp
+    description: "MCP server：Playwright 浏览器自动化，UI 验证/E2E 测试/截图"
+    source: "github.com/anthropics/playwright-mcp"
+    install: "claude mcp add --transport stdio playwright -- npx -y @anthropic-ai/playwright-mcp"
+    stars: 20000
+    priority: 23
+    mcp_config:
+      transport: stdio
+      command: npx
+      args: ["-y", "@anthropic-ai/playwright-mcp"]
+      scope: project
+    requires_auth: false
+    when:
+      has_file: "package.json"
+
+  # ── MCP: Sentry 错误监控 ──
+  - name: sentry-mcp
+    type: mcp
+    description: "MCP server：Sentry 生产错误上下文，堆栈追踪/错误趋势/部署关联"
+    source: "github.com/sentry-io/sentry-mcp"
+    install: "claude mcp add --transport http sentry https://mcp.sentry.dev/mcp"
+    stars: 5000
+    priority: 24
+    mcp_config:
+      transport: http
+      url: "https://mcp.sentry.dev/mcp"
+      env_keys: ["SENTRY_AUTH_TOKEN"]
+      scope: user
+    requires_auth: true
+
+  # ── MCP: 知识图谱记忆 ──
+  - name: memory-mcp
+    type: mcp
+    description: "MCP server：知识图谱持久化记忆，跨会话保留实体和关系"
+    source: "github.com/modelcontextprotocol/servers"
+    install: "claude mcp add --transport stdio memory -- npx -y @modelcontextprotocol/server-memory"
+    stars: 85000
+    priority: 25
+    mcp_config:
+      transport: stdio
+      command: npx
+      args: ["-y", "@modelcontextprotocol/server-memory"]
+      scope: user
+    requires_auth: false
+
+  # ── MCP: 深度思考 ──
+  - name: sequential-thinking-mcp
+    type: mcp
+    description: "MCP server：反思式逐步推理，支持修正与分支思考，适合复杂问题分析"
+    source: "github.com/modelcontextprotocol/servers"
+    install: "claude mcp add --transport stdio sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking"
+    stars: 85000
+    priority: 26
+    mcp_config:
+      transport: stdio
+      command: npx
+      args: ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+      scope: user
+    requires_auth: false
+    when:
+      scale_gte: "M"
+
+  # ── MCP: MCP 注册表搜索 ──
+  - name: mcp-registry
+    type: mcp
+    description: "MCP server：从官方注册表语义搜索 MCP server，发现更多 AI 工具能力"
+    source: "github.com/smithery-ai/smithery-cli-mcp"
+    install: "claude mcp add --transport stdio smithery -- npx -y @anthropic-ai/mcp-registry"
+    stars: 5000
+    priority: 27
+    mcp_config:
+      transport: stdio
+      command: npx
+      args: ["-y", "@anthropic-ai/mcp-registry"]
+      scope: user
+    requires_auth: false
+
+  # ── 代码图谱分析 ──
+  - name: codegraph
+    description: "代码关系图与依赖可视化，适合中大型仓库快速建立结构认知"
+    source: "github.com/colbymchenry/codegraph"
+    install: "npx @colbymchenry/codegraph"
+    stars: 29058
+    priority: 28
+    when:
+      scale_gte: "M"
+
+  # ── 输出质量与风格约束 ──
+  - name: taste-skill
+    description: "提升 Claude 输出质量与风格一致性的工程化 skill 集"
+    source: "github.com/Leonxlnx/taste-skill"
+    install: "npx skills add Leonxlnx/taste-skill"
+    stars: 23108
+    priority: 29
+
+  - name: stop-slop
+    description: "减少 AI 代码与文档噪声（slop）的约束型 skill"
+    source: "github.com/hardikpandya/stop-slop"
+    install: "npx skills add hardikpandya/stop-slop"
+    stars: 5301
+    priority: 30

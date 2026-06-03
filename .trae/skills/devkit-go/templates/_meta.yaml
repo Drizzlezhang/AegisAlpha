@@ -1,0 +1,15 @@
+schema_version: 2
+change_id: "{{change-id}}"
+size: "{{XS|S|M|L}}"
+stages: []
+current_stage: ""
+status: "active"
+created_at: ""
+updated_at: ""
+retry_count: 0
+last_tldr: ""
+last_next: ""
+last_risk: ""
+last_progress_note: ""
+last_context_mode: "full"
+last_verified_at: ""

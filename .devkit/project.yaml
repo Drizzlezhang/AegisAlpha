@@ -1,0 +1,44 @@
+schema_version: 1
+scanned_at: 2026-06-03T08:00:00.000Z
+ttl_seconds: 604800
+fingerprint:
+  package_json_hash: ""
+  lockfile_hash: ""
+  go_mod_hash: ""
+  pyproject_hash: ""
+  git_remote: ""
+project:
+  name: AegisAlpha
+  language: [python, typescript]
+  framework: [fastapi, langgraph, nextjs, sqlalchemy, pydantic]
+  scale: M
+  loc: 0
+  module_count: 0
+  is_monorepo: false
+  has_readme: false
+byted_signals:
+  strong: []
+  weak: []
+  is_internal: false
+ai_configs:
+  has_claude_md: true
+  has_agents_md: true
+  has_codex_config: true
+  has_cursor_rules: false
+  hosts:
+    claude_project_skills_exists: true
+    claude_global_skills_exists: true
+    claude_rules_file_exists: true
+    trae_project_skills_exists: true
+    trae_global_skills_exists: true
+    trae_rules_file_exists: true
+    codex_project_skills_exists: true
+    codex_global_skills_exists: true
+    codex_rules_file_exists: false
+  installed_skills: [devkit-go, devkit-init]
+  managed_by: devkit
+context_budget:
+  xs: 3000
+  s: 5000
+  m: 30000
+  l: 80000

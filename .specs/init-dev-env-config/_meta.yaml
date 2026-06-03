@@ -1,0 +1,15 @@
+schema_version: 2
+change_id: "init-dev-env-config"
+size: "XS"
+stages: [0-CHANGE, 4-BUILD, 5-LITE, 6-SHIP]
+current_stage: "6-SHIP"
+status: "completed"
+created_at: "2026-06-03T08:00:00+08:00"
+updated_at: "2026-06-03T08:01:00+08:00"
+retry_count: 0
+last_tldr: "CLAUDE.md 已填充项目规则，project.yaml 已修正元信息，验证通过"
+last_next: "完成，可开始正式开发"
+last_risk: "无"
+last_progress_note: "BUILD 完成，2 文件已更新"
+last_context_mode: "full"
+last_verified_at: ""
