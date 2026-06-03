@@ -24,3 +24,36 @@ agents:
     parallel_group: null
     pipeline_mode: both
     enabled: true
+
+  trend_phase_analyst:
+    name: trend_phase_analyst
+    version: "0.1.0"
+    requires: [market_data]
+    provides: [analyst_outputs.trend_phase, extensions.trend_phase_analyst]
+    tags: [trend, phase, signal]
+    llm_dependency: false
+    parallel_group: signal_analysts
+    pipeline_mode: both
+    enabled: true
+
+  level_analyst:
+    name: level_analyst
+    version: "0.1.0"
+    requires: [market_data]
+    provides: [analyst_outputs.levels, extensions.level_analyst]
+    tags: [levels, support, resistance, signal]
+    llm_dependency: false
+    parallel_group: signal_analysts
+    pipeline_mode: both
+    enabled: true
+
+  options_strategist_s1:
+    name: options_strategist_s1
+    version: "0.1.0"
+    requires: [market_data]
+    provides: [options_step1, extensions.options_strategist_s1]
+    tags: [options, screening, signal]
+    llm_dependency: false
+    parallel_group: signal_analysts
+    pipeline_mode: full
+    enabled: true
