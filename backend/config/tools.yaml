@@ -11,15 +11,54 @@ categories:
   - options_chain
 
 tools:
-  # 示例 Tool 条目（M1 分支 A 填充）
-  # - name: yfinance
-  #   class: aegis.tools.market_data.yfinance.YFinanceTool
-  #   category: market_data
-  #   tags: [ohlcv, fundamentals, options_chain]
-  #   fallback: alpha_vantage
-  #   circuit_breaker:
-  #     failure_threshold: 3
-  #     recovery_timeout_sec: 300
-  #   rate_limit:
-  #     max_calls_per_minute: 5
-  #   bound_agents: [data_harvester, trend_phase]
+  - name: yfinance
+    class: aegis.tools.market.yfinance_adapter.YFinanceAdapter
+    category: market_data
+    tags: [ohlcv, quote, earnings_date]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: alpha_vantage
+    bound_agents: [data_harvester, trend_phase_analyst, level_analyst]
+
+  - name: alpha_vantage
+    class: aegis.tools.market.alpha_vantage_adapter.AlphaVantageAdapter
+    category: market_data
+    tags: [ohlcv, quote, earnings_date, company_overview]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [data_harvester, fundamental_analyst]
+
+  - name: fred
+    class: aegis.tools.macro.fred_adapter.FREDAdapter
+    category: macro
+    tags: [macro, interest_rate, inflation, employment]
+    rate_limit:
+      max_calls: 10
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [macro_analyst]
+
+  - name: tavily
+    class: aegis.tools.news.tavily_adapter.TavilyAdapter
+    category: sentiment
+    tags: [news, sentiment, search]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [sentiment_analyst, news_analyst]

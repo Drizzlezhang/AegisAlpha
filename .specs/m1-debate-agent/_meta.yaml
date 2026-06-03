@@ -1,0 +1,15 @@
+schema_version: 2
+change_id: "m1-debate-agent"
+size: "S"
+stages: ["0-CHANGE", "1-SPEC", "4-BUILD", "5-VERIFY", "6-SHIP"]
+current_stage: "6-SHIP"
+status: "completed"
+created_at: "2026-06-03T09:10:00Z"
+updated_at: "2026-06-03T09:35:00Z"
+retry_count: 0
+last_tldr: "6-SHIP：commit 59ec737，46/46 tests pass，ruff/mypy clean，所有 6 AC 验证通过"
+last_next: "合并到 develop 并 push"
+last_risk: "无"
+last_progress_note: "已 commit，待 push"
+last_context_mode: "full"
+last_verified_at: ""

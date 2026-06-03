@@ -1,0 +1,19 @@
+{
+  "ticker": "QQQ",
+  "description": "Mock GEX data for QQQ",
+  "total_gex": 2500000000.0,
+  "spot_price": 450.0,
+  "strike_distribution": [
+    {"strike": 400.0, "gamma": -500000.0, "oi": 5000},
+    {"strike": 410.0, "gamma": -300000.0, "oi": 4000},
+    {"strike": 420.0, "gamma": -100000.0, "oi": 3500},
+    {"strike": 430.0, "gamma": 50000.0, "oi": 3000},
+    {"strike": 440.0, "gamma": 200000.0, "oi": 4500},
+    {"strike": 450.0, "gamma": 400000.0, "oi": 6000},
+    {"strike": 460.0, "gamma": 350000.0, "oi": 5000},
+    {"strike": 470.0, "gamma": 250000.0, "oi": 4000},
+    {"strike": 480.0, "gamma": 150000.0, "oi": 3000},
+    {"strike": 490.0, "gamma": 50000.0, "oi": 2000},
+    {"strike": 500.0, "gamma": -50000.0, "oi": 1500}
+  ]
+}
