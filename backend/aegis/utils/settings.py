@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     LONGBRIDGE_ACCESS_TOKEN: str = ""
     TIGER_PRIVATE_KEY: str = ""
     TIGER_TIGER_ID: str = ""
+    TIGER_PRIVATE_KEY_PATH: str = ""
+
+    # 券商启用开关
+    BROKER_ENABLED: list[str] = ["futu"]
 
     # 数据源 — 基础
     ALPHA_VANTAGE_API_KEY: str = ""

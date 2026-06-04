@@ -9,6 +9,7 @@ categories:
   - flows
   - liquidity
   - options_chain
+  - broker
 
 tools:
   - name: yfinance
@@ -62,6 +63,46 @@ tools:
       recovery_timeout: 120
     fallback: null
     bound_agents: [sentiment_analyst, news_analyst]
+
+  # --- M2 Branch C: Broker Tools ---
+  - name: futu_broker
+    class: aegis.tools.brokers.futu_adapter.FutuAdapter
+    category: broker
+    tags: [broker, positions]
+    rate_limit:
+      max_calls: 30
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [portfolio_orchestrator]
+
+  - name: longbridge_broker
+    class: aegis.tools.brokers.longbridge_adapter.LongbridgeAdapter
+    category: broker
+    tags: [broker, positions]
+    rate_limit:
+      max_calls: 30
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [portfolio_orchestrator]
+
+  - name: tiger_broker
+    class: aegis.tools.brokers.tiger_adapter.TigerAdapter
+    category: broker
+    tags: [broker, positions]
+    rate_limit:
+      max_calls: 20
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [portfolio_orchestrator]
 
   # --- M2 Branch A: Smart Money Tools ---
   - name: unusual_whales

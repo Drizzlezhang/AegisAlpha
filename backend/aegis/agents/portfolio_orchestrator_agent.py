@@ -10,9 +10,13 @@ import json
 import os
 from typing import Any, Literal, cast
 
+from loguru import logger
+
 from aegis.agents.base import BaseAgent
 from aegis.pipeline.state import PipelineState
 from aegis.registry.agent_registry import AgentManifest
+from aegis.tools.brokers.base import BrokerPosition
+from aegis.utils.settings import settings
 
 _VALID_ENTRY_MODES = frozenset({"passive", "active_left", "active_right", "cc", "sell_put"})
 _EntryMode = Literal["passive", "active_left", "active_right", "cc", "sell_put"]
@@ -22,7 +26,7 @@ class PortfolioOrchestratorAgent(BaseAgent):
     name = "portfolio_orchestrator"
     manifest = AgentManifest(
         name="portfolio_orchestrator",
-        version="0.1.0",
+        version="0.2.0",
         requires=[],
         provides=[
             "tickers_holdings_active",
@@ -30,6 +34,7 @@ class PortfolioOrchestratorAgent(BaseAgent):
             "entry_mode",
             "health_scores",
             "positions",
+            "broker_positions",
         ],
         tags=["portfolio", "orchestrator"],
         llm_dependency=False,
@@ -38,7 +43,25 @@ class PortfolioOrchestratorAgent(BaseAgent):
     )
 
     async def run(self, state: PipelineState) -> PipelineState:
-        positions = self._load_portfolio()
+        # M2: 优先从真实券商获取持仓
+        broker_positions = await self._load_from_brokers()
+
+        if broker_positions:
+            logger.info(
+                f"PortfolioOrchestrator: loaded {len(broker_positions)} positions from brokers"
+            )
+            # 写入 state.broker_positions（按 account 分组）
+            for pos in broker_positions:
+                state.broker_positions.setdefault(pos.account, []).append(pos.model_dump())
+
+            # 转换为 dict 格式以兼容现有逻辑
+            positions: list[dict[str, Any]] | None = [
+                self._broker_position_to_dict(p) for p in broker_positions
+            ]
+        else:
+            logger.info("PortfolioOrchestrator: no broker data, falling back to mock portfolio")
+            positions = self._load_mock_portfolio()
+
         if positions is None:
             return state
 
@@ -48,8 +71,68 @@ class PortfolioOrchestratorAgent(BaseAgent):
 
         return state
 
-    def _load_portfolio(self) -> list[dict[str, Any]] | None:
-        """加载 mock 持仓数据。"""
+    async def _load_from_brokers(self) -> list[BrokerPosition] | None:
+        """尝试从 BrokerManager 获取真实持仓。"""
+        try:
+            from aegis.tools.brokers.futu_adapter import FutuAdapter
+            from aegis.tools.brokers.longbridge_adapter import LongbridgeAdapter
+            from aegis.tools.brokers.manager import BrokerManager
+            from aegis.tools.brokers.tiger_adapter import TigerAdapter
+
+            adapter_map = {
+                "futu": FutuAdapter,
+                "longbridge": LongbridgeAdapter,
+                "tiger": TigerAdapter,
+            }
+
+            adapters = []
+            for name in settings.BROKER_ENABLED:
+                cls = adapter_map.get(name)
+                if cls is None:
+                    logger.warning(f"Unknown broker: {name}")
+                    continue
+                adapter = cls()  # type: ignore[abstract]
+                if adapter._available:  # type: ignore[attr-defined]
+                    adapters.append(adapter)
+                else:
+                    logger.warning(f"Broker {name} not available, skipping")
+
+            if not adapters:
+                logger.warning("No brokers available")
+                return None
+
+            manager = BrokerManager(adapters)
+            return await manager.get_all_positions()
+        except Exception as exc:
+            logger.exception(f"Broker loading failed: {exc}")
+            return None
+
+    @staticmethod
+    def _broker_position_to_dict(pos: BrokerPosition) -> dict[str, Any]:
+        """Convert BrokerPosition to dict for compatibility with existing logic."""
+        return {
+            "ticker": pos.ticker,
+            "pos_type": pos.pos_type,
+            "quantity": pos.quantity,
+            "avg_cost": pos.avg_cost,
+            "current_price": pos.current_price,
+            "strike": pos.strike,
+            "expiry": pos.expiry,
+            "option_type": pos.option_type,
+            "delta": pos.delta,
+            "gamma": pos.gamma,
+            "theta": pos.theta,
+            "vega": pos.vega,
+            "iv": pos.iv,
+            "delta_dollars": pos.delta_dollars,
+            "unrealized_pnl": pos.unrealized_pnl,
+            "entry_mode": pos.entry_mode or "passive",
+            "grade": pos.grade or "active",
+            "account": pos.account,
+        }
+
+    def _load_mock_portfolio(self) -> list[dict[str, Any]] | None:
+        """加载 mock 持仓数据（fallback）。"""
         path = self.config.get(
             "mock_portfolio_path",
             os.path.join(os.path.dirname(__file__), "..", "..", "config", "mock_portfolio.json"),
