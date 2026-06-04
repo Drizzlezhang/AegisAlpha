@@ -98,3 +98,84 @@ class TestYFinanceAdapter:
         result = await adapter.fetch(ticker="QQQ", method="unknown")
         assert result.success is False
         assert "Unknown method" in result.error
+
+    @pytest.mark.asyncio
+    async def test_fetch_options_chain_success(self, adapter: YFinanceAdapter) -> None:
+        """Should return options chain data with calls and puts."""
+        mock_call_df = pd.DataFrame(
+            {
+                "strike": [450.0, 460.0],
+                "lastPrice": [22.5, 17.5],
+                "bid": [22.0, 17.0],
+                "ask": [23.0, 18.0],
+                "volume": [100, 80],
+                "openInterest": [500, 400],
+                "impliedVolatility": [0.22, 0.21],
+            }
+        )
+        mock_put_df = pd.DataFrame(
+            {
+                "strike": [450.0, 460.0],
+                "lastPrice": [18.0, 24.0],
+                "bid": [17.5, 23.5],
+                "ask": [18.5, 24.5],
+                "volume": [90, 70],
+                "openInterest": [450, 350],
+                "impliedVolatility": [0.22, 0.21],
+            }
+        )
+        mock_chain = MagicMock()
+        mock_chain.calls = mock_call_df
+        mock_chain.puts = mock_put_df
+
+        mock_ticker = MagicMock()
+        mock_ticker.options = ["2026-07-18", "2026-08-15"]
+        mock_ticker.option_chain.return_value = mock_chain
+
+        with patch("yfinance.Ticker", return_value=mock_ticker):
+            result = await adapter.fetch(ticker="QQQ", method="options_chain")
+
+        assert result.success is True
+        assert result.source == "yfinance"
+        assert len(result.data["chains"]) == 2
+        assert result.data["chains"][0]["expiration"] == "2026-07-18"
+        assert len(result.data["chains"][0]["calls"]) == 2
+
+    @pytest.mark.asyncio
+    async def test_fetch_options_chain_empty(self, adapter: YFinanceAdapter) -> None:
+        """Should return error when no options chain available."""
+        mock_ticker = MagicMock()
+        mock_ticker.options = []
+
+        with patch("yfinance.Ticker", return_value=mock_ticker):
+            result = await adapter.fetch(ticker="QQQ", method="options_chain")
+
+        assert result.success is False
+        assert "No options chain" in result.error
+
+    @pytest.mark.asyncio
+    async def test_fetch_fundamentals_success(self, adapter: YFinanceAdapter) -> None:
+        """Should return fundamentals data."""
+        mock_ticker = MagicMock()
+        mock_ticker.info = {
+            "marketCap": 200000000000,
+            "trailingPE": 25.5,
+            "forwardPE": 22.3,
+            "priceToBook": 8.2,
+            "dividendYield": 0.005,
+            "sector": "Technology",
+            "industry": "Software",
+            "beta": 1.15,
+            "fiftyTwoWeekHigh": 500.0,
+            "fiftyTwoWeekLow": 350.0,
+        }
+
+        with patch("yfinance.Ticker", return_value=mock_ticker):
+            result = await adapter.fetch(ticker="QQQ", method="fundamentals")
+
+        assert result.success is True
+        assert result.source == "yfinance"
+        assert result.data["market_cap"] == 200000000000
+        assert result.data["pe_ratio"] == 25.5
+        assert result.data["sector"] == "Technology"
+        assert result.data["beta"] == 1.15

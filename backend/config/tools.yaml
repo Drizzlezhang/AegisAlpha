@@ -14,7 +14,7 @@ tools:
   - name: yfinance
     class: aegis.tools.market.yfinance_adapter.YFinanceAdapter
     category: market_data
-    tags: [ohlcv, quote, earnings_date]
+    tags: [ohlcv, quote, earnings_date, options_chain, fundamentals]
     rate_limit:
       max_calls: 5
       period: 60

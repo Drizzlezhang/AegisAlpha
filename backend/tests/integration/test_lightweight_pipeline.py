@@ -10,7 +10,7 @@ from aegis.pipeline.runner import run_lightweight
 
 
 class TestLightweightPipeline:
-    """Integration tests for the Lightweight Pipeline (4-node subgraph)."""
+    """Integration tests for the Lightweight Pipeline (3-node subgraph)."""
 
     @pytest.mark.asyncio
     async def test_lightweight_pipeline_executes(self) -> None:

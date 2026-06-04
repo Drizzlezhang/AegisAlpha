@@ -9,7 +9,8 @@ from typing import Any, ClassVar
 
 from aegis.agents.base import BaseAgent
 from aegis.calculators.gex import compute_gex
-from aegis.calculators.levels import compute_volume_profile, find_support_resistance
+from aegis.calculators.levels import find_support_resistance
+from aegis.calculators.volume_profile import compute_volume_profile
 from aegis.pipeline.state import PipelineState
 from aegis.registry.agent_registry import AgentManifest
 
@@ -42,7 +43,22 @@ class LevelAnalystAgent(BaseAgent):
                     continue
 
                 sr_levels = find_support_resistance(ohlcv)
-                vol_profile = compute_volume_profile(ohlcv)
+
+                import pandas as pd
+
+                ohlcv_df = pd.DataFrame(
+                    {k: ohlcv[k] for k in ["open", "high", "low", "close", "volume"] if k in ohlcv}
+                )
+                vp_result = compute_volume_profile(ohlcv_df)
+                vol_profile = {
+                    "poc": vp_result.poc,
+                    "value_area_high": vp_result.value_area_high,
+                    "value_area_low": vp_result.value_area_low,
+                    "volume_nodes": [
+                        {"price": p, "volume": v}
+                        for p, v in vp_result.profile.items()
+                    ],
+                }
 
                 # GEX integration (optional)
                 gex_result: dict[str, Any] = {}

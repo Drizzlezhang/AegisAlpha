@@ -1,4 +1,4 @@
-"""Pure calculation functions for trend detection and Wyckoff phase analysis.
+"""Pure calculation functions for trend detection.
 
 No LLM, no IO, no side effects.
 """
@@ -6,101 +6,6 @@ No LLM, no IO, no side effects.
 from __future__ import annotations
 
 from typing import Any
-
-
-def detect_wyckoff_phase(ohlcv: dict[str, list[float]]) -> dict[str, Any]:
-    """Detect Wyckoff phase from OHLCV data using simplified price-structure analysis.
-
-    Args:
-        ohlcv: {"open": [...], "high": [...], "low": [...], "close": [...], "volume": [...]}
-
-    Returns:
-        {"phase": "accumulation"|"markup"|"distribution"|"markdown"|"unknown",
-         "confidence": 0.0-1.0,
-         "signals": [str, ...]}
-    """
-    closes = ohlcv.get("close", [])
-    highs = ohlcv.get("high", [])
-    lows = ohlcv.get("low", [])
-    volumes = ohlcv.get("volume", [])
-
-    if len(closes) < 20:
-        return {"phase": "unknown", "confidence": 0.0, "signals": ["insufficient_data"]}
-
-    # Use last 20 bars for phase detection
-    recent_close = closes[-20:]
-    recent_high = highs[-20:]
-    recent_low = lows[-20:]
-    recent_volume = volumes[-20:]
-
-    # Compute simple metrics
-    price_range = max(recent_high) - min(recent_low)
-    if price_range == 0:
-        return {"phase": "unknown", "confidence": 0.0, "signals": ["zero_price_range"]}
-
-    current_price = recent_close[-1]
-    price_position = (current_price - min(recent_low)) / price_range
-
-    # Trend direction over the window
-    first_half_avg = sum(recent_close[:10]) / 10
-    second_half_avg = sum(recent_close[10:]) / 10
-    trend_pct = (second_half_avg - first_half_avg) / first_half_avg if first_half_avg else 0
-
-    # Volume trend
-    first_half_vol = sum(recent_volume[:10]) / 10 if recent_volume else 0
-    second_half_vol = sum(recent_volume[10:]) / 10 if recent_volume else 0
-    vol_change = (second_half_vol - first_half_vol) / first_half_vol if first_half_vol else 0
-
-    signals: list[str] = []
-    phase = "unknown"
-    confidence = 0.5
-
-    if trend_pct > 0.03:
-        # Uptrend
-        if price_position < 0.35:
-            phase = "accumulation"
-            signals.append("price_in_lower_range_during_uptrend")
-            signals.append("potential_accumulation_zone")
-            confidence = 0.55
-        elif vol_change > 0.1:
-            phase = "markup"
-            signals.append("rising_prices_with_increasing_volume")
-            confidence = 0.65
-        else:
-            phase = "markup"
-            signals.append("rising_prices")
-            confidence = 0.55
-    elif trend_pct < -0.03:
-        # Downtrend
-        if price_position > 0.65:
-            phase = "distribution"
-            signals.append("price_in_upper_range_during_downtrend")
-            signals.append("potential_distribution_zone")
-            confidence = 0.55
-        elif vol_change > 0.1:
-            phase = "markdown"
-            signals.append("falling_prices_with_increasing_volume")
-            confidence = 0.65
-        else:
-            phase = "markdown"
-            signals.append("falling_prices")
-            confidence = 0.55
-    else:
-        # Sideways
-        if price_position < 0.3:
-            phase = "accumulation"
-            signals.append("sideways_near_lows")
-            confidence = 0.45
-        elif price_position > 0.7:
-            phase = "distribution"
-            signals.append("sideways_near_highs")
-            confidence = 0.45
-        else:
-            phase = "unknown"
-            signals.append("sideways_mid_range")
-            confidence = 0.35
-
-    return {"phase": phase, "confidence": round(confidence, 2), "signals": signals}
 
 
 def _sma(values: list[float], period: int) -> list[float]:
@@ -143,8 +48,12 @@ def _rsi(closes: list[float], period: int = 14) -> float:
             losses -= change
     avg_gain = gains / period
     avg_loss = losses / period
+    if avg_gain == 0 and avg_loss == 0:
+        return 50.0
     if avg_loss == 0:
         return 100.0
+    if avg_gain == 0:
+        return 0.0
     rs = avg_gain / avg_loss
     return 100.0 - (100.0 / (1.0 + rs))
 

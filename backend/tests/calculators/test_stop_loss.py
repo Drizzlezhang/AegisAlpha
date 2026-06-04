@@ -54,3 +54,11 @@ def test_stop_loss_support_based_missing_level():
     """support_based mode without support_level raises ValueError."""
     with pytest.raises(ValueError, match="support_level is required"):
         compute_stop_loss(entry_price=100.0, mode="support_based")
+
+
+def test_stop_loss_entry_price_zero():
+    """entry_price=0 should not crash and return a valid result."""
+    result = compute_stop_loss(entry_price=0.0, mode="fixed_pct")
+    assert result.stop_price == 0.0
+    assert result.stop_pct == 0.08
+    assert result.mode == "fixed_pct"

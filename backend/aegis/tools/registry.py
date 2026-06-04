@@ -213,6 +213,55 @@ class ToolRegistry:
             raise KeyError(f"Tool '{name}' not found in registry. Available: {available}")
         return self._tools[name]
 
+    def register(
+        self, name: str, tool: BaseTool, config: dict[str, Any] | None = None
+    ) -> None:
+        """Programmatically register a tool (for testing / dynamic plugins).
+
+        Args:
+            name: Unique tool name.
+            tool: BaseTool instance.
+            config: Optional dict with keys: tags, rate_limit, circuit_breaker.
+        """
+        cfg = config or {}
+        tags: list[str] = cfg.get("tags", [])
+        rl_cfg = cfg.get("rate_limit")
+        cb_cfg = cfg.get("circuit_breaker")
+
+        rl = None
+        if rl_cfg:
+            rl = AsyncTokenBucket(
+                max_tokens=rl_cfg.get("max_calls", 5),
+                period_sec=rl_cfg.get("period", 60),
+            )
+
+        cb = None
+        if cb_cfg:
+            cb = CircuitBreaker(
+                name=name,
+                failure_threshold=cb_cfg.get("failure_threshold", 3),
+                recovery_timeout_sec=cb_cfg.get("recovery_timeout", 120),
+            )
+
+        entry = ToolEntry(
+            name=name,
+            class_path=f"{tool.__class__.__module__}.{tool.__class__.__name__}",
+            category=cfg.get("category", "unknown"),
+            tags=tags,
+        )
+
+        proxy = ToolProxy(
+            adapter=tool,
+            entry=entry,
+            circuit_breaker=cb,
+            rate_limiter=rl,
+            cache=None,
+        )
+        self._tools[name] = proxy
+        for tag in tags:
+            self._by_tag.setdefault(tag, []).append(proxy)
+        logger.info(f"ToolRegistry: registered '{name}' with tags={tags}")
+
     def find_by_tag(self, tag: str) -> list[ToolProxy]:
         """Find all tools matching a given tag."""
         return self._by_tag.get(tag, [])

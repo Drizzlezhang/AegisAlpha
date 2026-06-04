@@ -1,6 +1,6 @@
-"""Lightweight Pipeline StateGraph — 4-node subgraph, zero LLM calls.
+"""Lightweight Pipeline StateGraph — 3-node subgraph, zero LLM calls.
 
-START → DataHarvester(lightweight) → Trend/Phase → Level → health_check → END
+START → DataHarvester(lightweight) → PortfolioOrchestrator → health_check → END
 
 health_check is a pure calculation node (no Agent, no LLM).
 """
@@ -15,14 +15,12 @@ from langgraph.graph import END, StateGraph
 from loguru import logger
 
 from aegis.agents.data_harvester_agent import DataHarvesterAgent
-from aegis.agents.level_analyst_agent import LevelAnalystAgent
-from aegis.agents.trend_phase_analyst_agent import TrendPhaseAnalystAgent
+from aegis.agents.portfolio_orchestrator_agent import PortfolioOrchestratorAgent
 from aegis.pipeline.state import PipelineState
 
 _LW_AGENT_CLASSES: dict[str, type] = {
     "data_harvester": DataHarvesterAgent,
-    "trend_phase_analyst": TrendPhaseAnalystAgent,
-    "level_analyst": LevelAnalystAgent,
+    "portfolio_orchestrator": PortfolioOrchestratorAgent,
 }
 
 
@@ -102,14 +100,12 @@ def build_lightweight_graph() -> StateGraph:  # type: ignore[type-arg]
     graph = StateGraph(PipelineState)
 
     graph.add_node("data_harvester", _run_lw_agent("data_harvester"))  # type: ignore[call-overload]
-    graph.add_node("trend_phase", _run_lw_agent("trend_phase_analyst"))  # type: ignore[call-overload]
-    graph.add_node("level", _run_lw_agent("level_analyst"))  # type: ignore[call-overload]
+    graph.add_node("portfolio_orchestrator", _run_lw_agent("portfolio_orchestrator"))  # type: ignore[call-overload]
     graph.add_node("health_check", _lightweight_health_check)
 
     graph.set_entry_point("data_harvester")
-    graph.add_edge("data_harvester", "trend_phase")
-    graph.add_edge("trend_phase", "level")
-    graph.add_edge("level", "health_check")
+    graph.add_edge("data_harvester", "portfolio_orchestrator")
+    graph.add_edge("portfolio_orchestrator", "health_check")
     graph.add_edge("health_check", END)
 
     return graph

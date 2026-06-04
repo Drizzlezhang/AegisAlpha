@@ -10,7 +10,7 @@ format:
 	cd backend && ruff format .
 
 typecheck:
-	cd backend && mypy backend/aegis
+	cd backend && mypy aegis
 
 test:
 	cd backend && pytest tests/ -v

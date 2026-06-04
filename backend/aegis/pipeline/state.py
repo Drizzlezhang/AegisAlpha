@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -48,14 +48,14 @@ class Recommendation(BaseModel):
 class BlockedRecommendation(BaseModel):
     recommendation: Recommendation
     block_reason: str
-    blocked_at: datetime = Field(default_factory=datetime.utcnow)
+    blocked_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class PipelineState(BaseModel):
     # 元数据
     pipeline_id: str = ""
     mode: PipelineMode = "manual"
-    triggered_at: datetime = Field(default_factory=datetime.utcnow)
+    triggered_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     tickers: list[str] = []
 
     # v1.2: 双 Pipeline 模式

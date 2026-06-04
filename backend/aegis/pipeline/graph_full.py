@@ -1,8 +1,7 @@
 """Full Pipeline StateGraph — 9-node manual assembly.
 
-START → DataHarvester → Trend/Phase → Level → Options S1
-  → Debate → Options S2 → Research Manager
-  → Portfolio Orchestrator → Risk Gate → END
+START → DataHarvester → PortfolioOrchestrator → Trend/Phase → Level
+  → Options S1 → Debate → Options S2 → Research Manager → Risk Gate → END
 
 M1: fully sequential (parallel fan-out requires Annotated state reducers — M2+).
 M2+: migrate to registry.graph_builder with proper parallel group support.
@@ -85,7 +84,8 @@ def build_full_graph() -> StateGraph:  # type: ignore[type-arg]
 
     # Edges — fully sequential (M1: parallel requires Annotated reducers)
     graph.set_entry_point("data_harvester")
-    graph.add_edge("data_harvester", "trend_phase")
+    graph.add_edge("data_harvester", "portfolio_orchestrator")
+    graph.add_edge("portfolio_orchestrator", "trend_phase")
     graph.add_edge("trend_phase", "level")
     graph.add_edge("level", "options_s1")
     graph.add_edge("options_s1", "debate")
@@ -93,8 +93,7 @@ def build_full_graph() -> StateGraph:  # type: ignore[type-arg]
     # Sequential chain
     graph.add_edge("debate", "options_s2")
     graph.add_edge("options_s2", "research_manager")
-    graph.add_edge("research_manager", "portfolio_orchestrator")
-    graph.add_edge("portfolio_orchestrator", "risk_gate")
+    graph.add_edge("research_manager", "risk_gate")
     graph.add_edge("risk_gate", END)
 
     return graph

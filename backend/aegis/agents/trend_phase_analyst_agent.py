@@ -8,7 +8,8 @@ from __future__ import annotations
 from typing import Any, ClassVar
 
 from aegis.agents.base import BaseAgent
-from aegis.calculators.trend import compute_trend_score, detect_wyckoff_phase
+from aegis.calculators.trend import compute_trend_score
+from aegis.calculators.wyckoff import detect_wyckoff_phase
 from aegis.pipeline.state import PipelineState
 from aegis.registry.agent_registry import AgentManifest
 
@@ -40,7 +41,17 @@ class TrendPhaseAnalystAgent(BaseAgent):
                     self._flag_error(state, ticker, "insufficient_ohlcv_data")
                     continue
 
-                wyckoff = detect_wyckoff_phase(ohlcv)
+                import pandas as pd
+
+                ohlcv_df = pd.DataFrame(
+                    {k: ohlcv[k] for k in ["open", "high", "low", "close", "volume"] if k in ohlcv}
+                )
+                wyckoff_result = detect_wyckoff_phase(ohlcv_df)
+                wyckoff = {
+                    "phase": wyckoff_result.phase,
+                    "confidence": wyckoff_result.confidence,
+                    "signals": [wyckoff_result.rationale],
+                }
                 trend = compute_trend_score(ohlcv)
 
                 state.analyst_outputs.setdefault(ticker, {})["trend_phase"] = {

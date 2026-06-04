@@ -1,4 +1,4 @@
-"""YFinance adapter — OHLCV, quote, and earnings date via yfinance library."""
+"""YFinance adapter — OHLCV, quote, earnings date, options chain, and fundamentals."""
 
 from __future__ import annotations
 
@@ -16,6 +16,8 @@ class YFinanceAdapter(BaseTool):
     - history: OHLCV daily/weekly data
     - quote: real-time price snapshot
     - earnings_date: next earnings date
+    - options_chain: options chain data (calls + puts per expiration)
+    - fundamentals: key fundamental metrics
     """
 
     name = "yfinance"
@@ -69,10 +71,57 @@ class YFinanceAdapter(BaseTool):
                 logger.info(f"yfinance earnings_date: {ticker}")
                 return ToolResult(success=True, data=earnings_data, source=self.name)
 
+            elif method == "options_chain":
+                max_expirations = kwargs.get("max_expirations", 3)
+                expirations = stock.options
+                if not expirations:
+                    return ToolResult(
+                        success=False,
+                        error=f"No options chain available for {ticker}",
+                        source=self.name,
+                    )
+                chains = []
+                for exp in expirations[:max_expirations]:
+                    chain = stock.option_chain(exp)
+                    calls = chain.calls.to_dict("records")
+                    puts = chain.puts.to_dict("records")
+                    chains.append({"expiration": exp, "calls": calls, "puts": puts})
+                logger.info(
+                    f"yfinance options_chain: {ticker} expirations={len(chains)}"
+                )
+                return ToolResult(
+                    success=True,
+                    data={"ticker": ticker, "chains": chains},
+                    source=self.name,
+                )
+
+            elif method == "fundamentals":
+                info = stock.info
+                fundamentals_data = {
+                    "ticker": ticker,
+                    "market_cap": info.get("marketCap"),
+                    "pe_ratio": info.get("trailingPE"),
+                    "forward_pe": info.get("forwardPE"),
+                    "pb_ratio": info.get("priceToBook"),
+                    "dividend_yield": info.get("dividendYield"),
+                    "sector": info.get("sector"),
+                    "industry": info.get("industry"),
+                    "beta": info.get("beta"),
+                    "fifty_two_week_high": info.get("fiftyTwoWeekHigh"),
+                    "fifty_two_week_low": info.get("fiftyTwoWeekLow"),
+                }
+                logger.info(f"yfinance fundamentals: {ticker}")
+                return ToolResult(
+                    success=True, data=fundamentals_data, source=self.name
+                )
+
             else:
                 return ToolResult(
                     success=False,
-                    error=f"Unknown method: {method}. Supported: history, quote, earnings_date",
+                    error=(
+                        f"Unknown method: {method}. "
+                        "Supported: history, quote, earnings_date, options_chain, fundamentals"
+                    ),
                     source=self.name,
                 )
 
