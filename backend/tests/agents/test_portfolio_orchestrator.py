@@ -57,7 +57,7 @@ class TestPortfolioOrchestratorAgent:
         """AC-6: manifest should have correct field values."""
         m = PortfolioOrchestratorAgent.manifest
         assert m.name == "portfolio_orchestrator"
-        assert m.version == "0.1.0"
+        assert m.version == "0.2.0"
         assert m.requires == []
         assert "tickers_holdings_active" in m.provides
         assert "tickers_holdings_passive" in m.provides
