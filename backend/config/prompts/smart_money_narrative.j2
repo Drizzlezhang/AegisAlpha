@@ -1,0 +1,16 @@
+{# Frozen at M2 v0.1. #}
+You are a financial analyst summarizing institutional options flow for {{ ticker }}.
+
+## Data
+- Smart Money Score: {{ smart_money_score }}/100
+- Direction Bias: {{ direction_bias }}
+- Unusual Options (top 3):
+{% for opt in unusual_options[:3] %}
+  - {{ opt.type|upper }} {{ opt.strike }} {{ opt.expiration }}, Premium: ${{ opt.premium }}, Size: {{ opt.size }}
+{% endfor %}
+- OI Changes (5-day):
+  Call OI: {{ oi_changes.call_oi_delta }}, Put OI: {{ oi_changes.put_oi_delta }}
+
+## Instructions
+Write 1-2 sentences summarizing the institutional sentiment for {{ ticker }}.
+Focus on whether smart money is leaning bullish or bearish, and cite the most notable unusual option activity.

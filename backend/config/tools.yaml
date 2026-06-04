@@ -62,3 +62,68 @@ tools:
       recovery_timeout: 120
     fallback: null
     bound_agents: [sentiment_analyst, news_analyst]
+
+  - name: unusual_whales
+    class: aegis.tools.options_flow.unusual_whales_adapter.UnusualWhalesAdapter
+    category: options_chain
+    tags: [options_flow, unusual, institutional]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: market_chameleon
+    bound_agents: [smart_money_agent]
+
+  - name: oi_change
+    class: aegis.tools.options_flow.oi_change_adapter.OIChangeAdapter
+    category: options_chain
+    tags: [options_flow, oi, open_interest]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [smart_money_agent]
+
+  - name: finviz
+    class: aegis.tools.screener.finviz_adapter.FinvizScreenerAdapter
+    category: market_data
+    tags: [screener, filter, fundamentals]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [smart_money_agent]
+
+  - name: barchart_options
+    class: aegis.tools.options_flow.barchart_adapter.BarchartOptionsAdapter
+    category: options_chain
+    tags: [options_flow, iv_rank, iv_percentile]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [smart_money_agent]
+
+  - name: market_chameleon
+    class: aegis.tools.options_flow.market_chameleon_adapter.MarketChameleonAdapter
+    category: options_chain
+    tags: [options_flow, unusual, activity]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [smart_money_agent]

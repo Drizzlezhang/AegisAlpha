@@ -101,3 +101,14 @@ agents:
     parallel_group: null
     pipeline_mode: full
     enabled: true
+
+  smart_money_agent:
+    name: smart_money_agent
+    version: "0.1.0"
+    requires: [tickers, market_data]
+    provides: [smart_money_data]
+    tags: [smart_money, options_flow, signal]
+    llm_dependency: true
+    parallel_group: signal_analysts
+    pipeline_mode: full
+    enabled: true
