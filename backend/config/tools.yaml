@@ -63,6 +63,7 @@ tools:
     fallback: null
     bound_agents: [sentiment_analyst, news_analyst]
 
+  # --- M2 Branch A: Smart Money Tools ---
   - name: unusual_whales
     class: aegis.tools.options_flow.unusual_whales_adapter.UnusualWhalesAdapter
     category: options_chain
@@ -127,3 +128,69 @@ tools:
       recovery_timeout: 120
     fallback: null
     bound_agents: [smart_money_agent]
+
+  # --- M2 Branch B: Fund Flow Tools ---
+  - name: etf_flows
+    class: aegis.tools.flows.etf_flows_adapter.ETFFlowsAdapter
+    category: flows
+    tags: [etf, fund_flow, macro_flow]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [fund_flow_agent]
+
+  - name: sector_etf_flows
+    class: aegis.tools.flows.sector_etf_flows_adapter.SectorETFFlowsAdapter
+    category: flows
+    tags: [sector, etf, fund_flow, rotation]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [fund_flow_agent]
+
+  - name: hyg_lqd_spread
+    class: aegis.tools.liquidity.hyg_lqd_spread_adapter.HYGLQDSpreadAdapter
+    category: liquidity
+    tags: [credit, spread, risk_appetite]
+    rate_limit:
+      max_calls: 5
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [fund_flow_agent]
+
+  - name: dfii
+    class: aegis.tools.macro.dfii_adapter.DFIIAdapter
+    category: macro
+    tags: [macro, real_rate, tips, gold]
+    rate_limit:
+      max_calls: 10
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [fund_flow_agent, macro_analyst]
+
+  - name: dxy
+    class: aegis.tools.macro.dxy_adapter.DXYAdapter
+    category: macro
+    tags: [macro, dollar, fx, commodities]
+    rate_limit:
+      max_calls: 10
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [fund_flow_agent, macro_analyst]
