@@ -236,3 +236,24 @@ class TestTelegramNotifierSend:
             mock_settings.TELEGRAM_CHAT_ID = ""
             await notifier._send_message("Test message")
             mock_bot.send_message.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_send_trigger_notification(self) -> None:
+        """send_trigger() should format and send trigger notification."""
+        notifier = TelegramNotifier()
+        trigger = {
+            "ticker": "QQQ",
+            "trigger_type": "price_below",
+            "suggested_action": {"action": "buy", "strategy": "leaps_call"},
+            "trigger_params": {"threshold": 475},
+        }
+
+        with patch.object(notifier, "_send_message", new_callable=AsyncMock) as mock_send:
+            await notifier.send_trigger(trigger)
+            mock_send.assert_called_once()
+            msg = mock_send.call_args[0][0]
+            assert "⏰" in msg
+            assert "QQQ" in msg
+            assert "price_below" in msg
+            assert "buy" in msg
+            assert "leaps_call" in msg

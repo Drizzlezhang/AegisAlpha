@@ -10,6 +10,7 @@ M2 Branch E+F: parallel execution for signal layer agents via composite nodes.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -120,10 +121,18 @@ class GraphBuilder:
     asyncio.gather within composite nodes for concurrent execution.
     Annotated state reducers (merge_dicts, merge_lists) handle
     conflict-free parallel writes to extensions, error_flags, and agent_timings.
+
+    Optionally emits WebSocket events via PipelineWSManager for real-time
+    pipeline monitoring.
     """
 
-    def __init__(self, agents_yaml_path: str | None = None) -> None:
+    def __init__(
+        self,
+        agents_yaml_path: str | None = None,
+        ws_manager: Any = None,
+    ) -> None:
         self._agents_yaml_path = agents_yaml_path
+        self._ws_manager = ws_manager
 
     def build(
         self, pipeline_mode: str
@@ -217,7 +226,7 @@ class GraphBuilder:
                         {"agent": agent_names[i], "error": str(result)}
                     )
 
-            state.agent_timings[f"parallel_group"] = elapsed
+            state.agent_timings["parallel_group"] = elapsed
 
             return {
                 "extensions": state.extensions,
@@ -228,10 +237,23 @@ class GraphBuilder:
         return composite_fn
 
     def _make_node(self, agent_name: str) -> Callable[[PipelineState], Any]:
-        """Create a LangGraph node function for an agent."""
+        """Create a LangGraph node function for an agent.
+
+        Emits agent_start, agent_complete, and agent_failed WebSocket events
+        when a ws_manager is configured.
+        """
 
         async def node_fn(state: PipelineState) -> dict[str, Any]:
             import importlib
+
+            pipeline_id = state.pipeline_id
+
+            # Emit agent_start
+            if self._ws_manager:
+                with contextlib.suppress(Exception):
+                    await self._ws_manager.emit_agent_start(
+                        pipeline_id, agent_name
+                    )
 
             # Map agent name to module path
             if agent_name.endswith("_agent"):
@@ -245,6 +267,11 @@ class GraphBuilder:
                 state.error_flags.append(
                     {"agent": agent_name, "error": f"Module not found: {module_name}"}
                 )
+                if self._ws_manager:
+                    with contextlib.suppress(Exception):
+                        await self._ws_manager.emit_agent_failed(
+                            pipeline_id, agent_name, f"Module not found: {module_name}"
+                        )
                 return {
                     "extensions": state.extensions,
                     "error_flags": state.error_flags,
@@ -265,6 +292,11 @@ class GraphBuilder:
                 state.error_flags.append(
                     {"agent": agent_name, "error": "Agent class not found"}
                 )
+                if self._ws_manager:
+                    with contextlib.suppress(Exception):
+                        await self._ws_manager.emit_agent_failed(
+                            pipeline_id, agent_name, "Agent class not found"
+                        )
                 return {
                     "extensions": state.extensions,
                     "error_flags": state.error_flags,
@@ -279,6 +311,19 @@ class GraphBuilder:
                 logger.exception(f"[{agent_name}] failed: {exc}")
                 state.error_flags.append({"agent": agent_name, "error": str(exc)})
                 result = state
+                if self._ws_manager:
+                    with contextlib.suppress(Exception):
+                        await self._ws_manager.emit_agent_failed(
+                            pipeline_id, agent_name, str(exc)
+                        )
+            else:
+                # Emit agent_complete
+                if self._ws_manager:
+                    with contextlib.suppress(Exception):
+                        await self._ws_manager.emit_agent_complete(
+                            pipeline_id, agent_name,
+                            {"elapsed": time.monotonic() - t0}
+                        )
             elapsed = time.monotonic() - t0
             result.agent_timings[agent_name] = elapsed
 

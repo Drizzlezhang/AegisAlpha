@@ -1,4 +1,4 @@
-{# Frozen at M1 v1.0. #}
+{# Frozen at M2 v1.3. #}
 {% if rec.action in ("buy", "add") %}📊 新建仓推荐
 {% elif rec.action in ("sell", "close", "reduce") %}⚙️ 持仓操作
 {% else %}ℹ️ 持仓建议
@@ -8,3 +8,12 @@
 理由: {{ rec.rationale }}
 紧急度: {{ rec.urgency }} | 评分: {{ rec.score }}/100
 Delta $: {{ "%.0f" | format(rec.delta_dollars_delta) }}
+{% if rec.stop_loss and rec.stop_loss.trigger_price %}
+止损: ${{ "%.2f" | format(rec.stop_loss.trigger_price) }}{% if rec.stop_loss.mode %} ({{ rec.stop_loss.mode }}){% endif %}
+{% endif %}
+{% if rec.option_contracts %}
+期权合约:
+{% for oc in rec.option_contracts[:3] %}
+  {{ oc.symbol }} | Strike ${{ "%.1f" | format(oc.strike) }} | DTE {{ oc.dte }} | IV {{ "%.1f%%" | format(oc.iv * 100) }}
+{% endfor %}
+{% endif %}

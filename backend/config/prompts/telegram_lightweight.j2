@@ -1,4 +1,4 @@
-{# Frozen at M1 v1.0. #}
+{# Frozen at M2 v1.3. #}
 🔍 Lightweight 巡检
 
 {% for ticker, score in health_scores.items() %}
@@ -8,6 +8,10 @@
 {% if alerts %}
 ⚠️ 预警:
 {% for alert in alerts %}
-- {{ alert.ticker }}: {{ alert.type }} ({{ "%.1f%%" | format(alert.pct_change * 100) }})
+- {{ alert.ticker }}: {{ alert.type }}{% if alert.pct_change is defined %} ({{ "%.1f%%" | format(alert.pct_change * 100) }}){% endif %}{% if alert.message %} — {{ alert.message }}{% endif %}
 {% endfor %}
+{% endif %}
+
+{% if not health_scores and not alerts %}
+✅ 所有持仓正常，无预警
 {% endif %}

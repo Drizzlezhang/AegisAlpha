@@ -14,8 +14,8 @@ from aegis.storage.trigger_store import TriggerStore
 @pytest.fixture
 def mock_store() -> TriggerStore:
     """Create a TriggerStore with a temp DB."""
-    import tempfile
     import os
+    import tempfile
 
     with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
         db_path = f.name
@@ -67,7 +67,9 @@ class TestTriggerCheckRunner:
         assert fired[0]["ticker"] == "QQQ"
 
     @pytest.mark.asyncio
-    async def test_price_below_trigger_does_not_fire_when_above(self, mock_store: TriggerStore) -> None:
+    async def test_price_below_trigger_does_not_fire_when_above(
+        self, mock_store: TriggerStore
+    ) -> None:
         future = (datetime.now(UTC) + timedelta(days=7)).isoformat()
         await mock_store.create_trigger({
             "ticker": "QQQ",
@@ -131,7 +133,9 @@ class TestTriggerCheckRunner:
         assert len(fired) == 1
 
     @pytest.mark.asyncio
-    async def test_volume_spike_below_threshold_does_not_fire(self, mock_store: TriggerStore) -> None:
+    async def test_volume_spike_below_threshold_does_not_fire(
+        self, mock_store: TriggerStore
+    ) -> None:
         future = (datetime.now(UTC) + timedelta(days=7)).isoformat()
         await mock_store.create_trigger({
             "ticker": "QQQ",
@@ -180,6 +184,7 @@ class TestTriggerCheckRunner:
 
         mock_telegram = AsyncMock()
         mock_telegram.send_message = AsyncMock()
+        mock_telegram.send_trigger = AsyncMock()
 
         runner = TriggerCheckRunner(
             trigger_store=mock_store,
@@ -187,4 +192,4 @@ class TestTriggerCheckRunner:
         )
         fired = await runner.run()
         assert len(fired) == 1
-        mock_telegram.send_message.assert_called_once()
+        mock_telegram.send_trigger.assert_called_once()

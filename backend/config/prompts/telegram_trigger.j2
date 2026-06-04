@@ -1,0 +1,13 @@
+{# Frozen at M2 v1.3. #}
+⏰ Trigger 触发
+
+{{ ticker }} — {{ trigger_type }}
+{% if suggested_action %}
+建议操作: {{ suggested_action.action }}{% if suggested_action.strategy %} ({{ suggested_action.strategy }}){% endif %}
+{% endif %}
+{% if trigger_params %}
+条件参数:
+{% for key, value in trigger_params.items() %}
+  {{ key }}: {{ value }}
+{% endfor %}
+{% endif %}

@@ -25,9 +25,11 @@ class TriggerCheckRunner:
         self,
         trigger_store: TriggerStore | None = None,
         telegram_notifier: Any = None,
+        ws_manager: Any = None,
     ) -> None:
         self._store = trigger_store or TriggerStore()
         self._telegram = telegram_notifier
+        self._ws_manager = ws_manager
 
     async def run(self) -> list[dict[str, Any]]:
         """Scan all active triggers and process them.
@@ -68,6 +70,17 @@ class TriggerCheckRunner:
             if self._is_triggered(trigger):
                 await self._store.mark_triggered(trigger_id)
                 fired.append(trigger)
+
+                # Emit WebSocket event
+                if self._ws_manager:
+                    try:
+                        await self._ws_manager.emit_trigger_fired(
+                            f"trigger-{trigger_id}", trigger
+                        )
+                    except Exception as exc:
+                        logger.error(
+                            f"TriggerCheckRunner: failed to emit WS event: {exc}"
+                        )
 
                 # Send Telegram notification
                 if self._telegram:
@@ -122,21 +135,12 @@ class TriggerCheckRunner:
 
     async def _send_trigger_notification(self, trigger: dict[str, Any]) -> None:
         """Send a Telegram notification for a fired trigger."""
-        ticker = trigger.get("ticker", "unknown")
-        trigger_type = trigger.get("trigger_type", "unknown")
-        suggested = trigger.get("suggested_action", {})
-
-        message = (
-            f"⏰ Trigger Fired\n"
-            f"Ticker: {ticker}\n"
-            f"Type: {trigger_type}\n"
-        )
-        if suggested:
-            action = suggested.get("action", "unknown")
-            strategy = suggested.get("strategy", "")
-            message += f"Suggested: {action}"
-            if strategy:
-                message += f" ({strategy})"
-
         if self._telegram:
-            await self._telegram.send_message(message)
+            if hasattr(self._telegram, "send_trigger"):
+                await self._telegram.send_trigger(trigger)
+            else:
+                await self._telegram.send_message(
+                    f"⏰ Trigger Fired\n"
+                    f"Ticker: {trigger.get('ticker', 'unknown')}\n"
+                    f"Type: {trigger.get('trigger_type', 'unknown')}"
+                )

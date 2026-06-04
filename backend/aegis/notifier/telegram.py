@@ -27,6 +27,7 @@ class TelegramNotifier:
     Templates:
         telegram_recommendation.j2 — full pipeline recommendations
         telegram_lightweight.j2 — lightweight health check
+        telegram_trigger.j2 — trigger fired notification
         telegram_error.j2 — error alerts
     """
 
@@ -50,6 +51,17 @@ class TelegramNotifier:
             await self._send_lightweight(state)
         else:
             await self._send_full(state)
+
+    async def send_trigger(self, trigger: dict[str, Any]) -> None:
+        """Send a trigger fired notification."""
+        template = self._jinja.get_template("telegram_trigger.j2")
+        msg = template.render(
+            ticker=trigger.get("ticker", "unknown"),
+            trigger_type=trigger.get("trigger_type", "unknown"),
+            suggested_action=trigger.get("suggested_action", {}),
+            trigger_params=trigger.get("trigger_params", {}),
+        )
+        await self._send_message(msg)
 
     async def _send_full(self, state: PipelineState) -> None:
         """Send full pipeline results: recommendations, blocked, errors."""
