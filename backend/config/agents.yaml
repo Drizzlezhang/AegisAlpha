@@ -57,3 +57,36 @@ agents:
     parallel_group: signal_analysts
     pipeline_mode: full
     enabled: true
+
+  options_strategist_s2:
+    name: options_strategist_s2
+    version: "0.1.0"
+    requires: [options_step1, debate_results, analyst_outputs.levels]
+    provides: [options_step2, extensions.options_strategist_s2]
+    tags: [options, strategy, signal]
+    llm_dependency: true
+    parallel_group: null
+    pipeline_mode: full
+    enabled: true
+
+  research_manager:
+    name: research_manager
+    version: "0.1.0"
+    requires: [options_step2, debate_results, positions]
+    provides: [recommendations, pending_triggers, extensions.research_manager]
+    tags: [research, ranking, synthesis]
+    llm_dependency: true
+    parallel_group: null
+    pipeline_mode: full
+    enabled: true
+
+  risk_gate:
+    name: risk_gate
+    version: "0.1.0"
+    requires: [recommendations, positions, market_data, macro_data]
+    provides: [recommendations, blocked_recommendations, extensions.risk_gate]
+    tags: [risk, gate, safety]
+    llm_dependency: false
+    parallel_group: null
+    pipeline_mode: full
+    enabled: true

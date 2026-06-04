@@ -72,7 +72,7 @@ class PipelineState(BaseModel):
     analyst_outputs: dict[str, dict[str, Any]] = {}
     debate_results: dict[str, dict[str, Any]] = {}
     options_step1: dict[str, dict[str, Any]] = {}
-    options_step2: dict[str, list[OptionContract]] = {}
+    options_step2: dict[str, dict[str, Any]] = {}
 
     # 决策
     recommendations: list[Recommendation] = []
