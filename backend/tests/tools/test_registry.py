@@ -34,10 +34,12 @@ class TestToolRegistry:
             registry.get("nonexistent")
 
     def test_find_by_tag_macro(self, registry: ToolRegistry) -> None:
-        """find_by_tag('macro') should return only fred."""
+        """find_by_tag('macro') should return fred, dfii, dxy."""
         results = registry.find_by_tag("macro")
         names = [p.name for p in results]
-        assert names == ["fred"]
+        assert "fred" in names
+        assert "dfii" in names
+        assert "dxy" in names
 
     def test_find_by_tag_ohlcv(self, registry: ToolRegistry) -> None:
         """find_by_tag('ohlcv') should return yfinance and alpha_vantage."""
