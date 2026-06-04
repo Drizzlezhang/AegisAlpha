@@ -82,6 +82,7 @@ class DebateAgent(BaseAgent):
     ) -> tuple[dict[str, Any] | None, int]:
         """Run debate rounds for a single ticker. Returns (result, total_tokens)."""
         factor_scores = self._get_factor_scores(ticker, state)
+        fund_flow_context = self._build_fund_flow_context(state)
         debate_history: list[dict[str, Any]] = []
         total_tokens = 0
         prev_direction: str | None = None
@@ -90,11 +91,15 @@ class DebateAgent(BaseAgent):
 
         for round_num in range(1, self.max_rounds + 1):
             # --- Bull ---
-            bull_arg, bt = await self._call_bull(ticker, factor_scores, debate_history)
+            bull_arg, bt = await self._call_bull(
+                ticker, factor_scores, debate_history, fund_flow_context
+            )
             total_tokens += bt
 
             # --- Bear ---
-            bear_arg, bet = await self._call_bear(ticker, factor_scores, debate_history)
+            bear_arg, bet = await self._call_bear(
+                ticker, factor_scores, debate_history, fund_flow_context
+            )
             total_tokens += bet
 
             # --- Judge ---
@@ -162,6 +167,7 @@ class DebateAgent(BaseAgent):
         ticker: str,
         factor_scores: list[dict[str, Any]],
         debate_history: list[dict[str, Any]],
+        fund_flow_context: str = "",
     ) -> tuple[str, int]:
         """Render bull prompt and call LLM. Returns (argument, tokens_used)."""
         prev = self._previous_rounds(debate_history)
@@ -170,7 +176,7 @@ class DebateAgent(BaseAgent):
             ticker=ticker,
             factor_scores=factor_scores,
             smart_money_context="",
-            fund_flow_context="",
+            fund_flow_context=fund_flow_context,
             bull_previous=prev.get("bull"),
             bear_previous=prev.get("bear"),
             judge_previous=prev.get("judge"),
@@ -187,6 +193,7 @@ class DebateAgent(BaseAgent):
         ticker: str,
         factor_scores: list[dict[str, Any]],
         debate_history: list[dict[str, Any]],
+        fund_flow_context: str = "",
     ) -> tuple[str, int]:
         """Render bear prompt and call LLM. Returns (argument, tokens_used)."""
         prev = self._previous_rounds(debate_history)
@@ -195,7 +202,7 @@ class DebateAgent(BaseAgent):
             ticker=ticker,
             factor_scores=factor_scores,
             smart_money_context="",
-            fund_flow_context="",
+            fund_flow_context=fund_flow_context,
             bull_previous=prev.get("bull"),
             bear_previous=prev.get("bear"),
             judge_previous=prev.get("judge"),
@@ -266,6 +273,36 @@ class DebateAgent(BaseAgent):
         if not scores:
             logger.warning("No factor_scores found for ticker=%s", ticker)
         return scores
+
+    @staticmethod
+    def _build_fund_flow_context(state: PipelineState) -> str:
+        """Build fund_flow_context string from FundFlowAgent extensions."""
+        ff = state.extensions.get("fund_flow_agent", {})
+        if not ff:
+            return ""
+
+        parts = []
+        macro = ff.get("macro_liquidity", "")
+        if macro:
+            parts.append(f"Macro Liquidity: {macro}")
+
+        credit = ff.get("credit_appetite", "")
+        if credit:
+            parts.append(f"Credit Appetite: {credit}")
+
+        rotation = ff.get("sector_rotation", {})
+        into = rotation.get("into", [])
+        out_of = rotation.get("out_of", [])
+        if into:
+            parts.append(f"Sector Rotation Into: {', '.join(into)}")
+        if out_of:
+            parts.append(f"Sector Rotation Out Of: {', '.join(out_of)}")
+
+        narrative = ff.get("narrative", "")
+        if narrative:
+            parts.append(f"Summary: {narrative}")
+
+        return "\n".join(parts)
 
     @staticmethod
     def _previous_rounds(
