@@ -1,4 +1,4 @@
-"""Frozen at M1 v1.2. Changes require owner review."""
+"""Frozen at M2 v1.3. Changes require owner review."""
 
 from __future__ import annotations
 
@@ -98,3 +98,11 @@ class PipelineState(BaseModel):
 
     # 性能
     agent_timings: dict[str, float] = {}
+
+    # v1.3: M2 新增字段
+    smart_money_data: dict[str, dict[str, Any]] = {}
+    fund_flow_data: dict[str, dict[str, Any]] = {}
+    trigger_conditions: list[dict[str, Any]] = []
+    broker_positions: dict[str, list[dict[str, Any]]] = {}
+    strategy_comparisons: dict[str, list[dict[str, Any]]] = {}
+    scenario_pnl: dict[str, dict[str, Any]] = {}

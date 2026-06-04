@@ -34,6 +34,19 @@ class Settings(BaseSettings):
     BARCHART_API_KEY: str = ""
     FINVIZ_API_KEY: str = ""
 
+    # 数据源 — M2 新增
+    ETF_FUND_FLOW_SOURCE: str = "etfdb"
+    FUTU_TRADE_ENV: str = "SIMULATE"
+    LONGBRIDGE_REGION: str = "us"
+    TIGER_ACCOUNT: str = ""
+
+    # FastAPI
+    FASTAPI_HOST: str = "0.0.0.0"
+    FASTAPI_PORT: int = 8000
+
+    # Memory
+    MEMORY_SHORT_TTL_DAYS: int = 14
+
     # 推送
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
