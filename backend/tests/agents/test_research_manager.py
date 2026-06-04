@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from aegis.agents.research_manager_agent import ResearchManagerAgent
-from aegis.pipeline.state import PipelineState
+from aegis.pipeline.state import PipelineState, Recommendation
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
@@ -202,3 +202,312 @@ class TestResearchManager:
         assert m.pipeline_mode == "full"
         assert "research" in m.tags
         assert "ranking" in m.tags
+        assert "triggers" in m.tags
+
+
+# ---------------------------------------------------------------------------
+# M2 v1.3 new tests
+# ---------------------------------------------------------------------------
+
+
+class TestResearchManagerV2:
+    """Tests for Research Manager v2 features."""
+
+    # ------------------------------------------------------------------
+    # Right-side confirmation
+    # ------------------------------------------------------------------
+
+    def test_right_side_confirmed_passes_with_volume(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should pass when volume > 1.5× average and low retrace."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            market_data={"QQQ": {"volume": 2000000, "avg_volume_20d": 1000000, "retrace_from_breakout_pct": 0.20}},
+            positions={},
+            debate_results={},
+            options_step2={},
+        )
+        assert agent._right_side_confirmed(state, "QQQ") is True
+
+    def test_right_side_confirmed_fails_low_volume(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should fail when volume < 1.5× average."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            market_data={"QQQ": {"volume": 1000000, "avg_volume_20d": 1000000, "retrace_from_breakout_pct": 0.20}},
+            positions={},
+            debate_results={},
+            options_step2={},
+        )
+        assert agent._right_side_confirmed(state, "QQQ") is False
+
+    def test_right_side_confirmed_fails_high_retrace(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should fail when retrace > 50%."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            market_data={"QQQ": {"volume": 2000000, "avg_volume_20d": 1000000, "retrace_from_breakout_pct": 0.60}},
+            positions={},
+            debate_results={},
+            options_step2={},
+        )
+        assert agent._right_side_confirmed(state, "QQQ") is False
+
+    # ------------------------------------------------------------------
+    # Add-on evaluation
+    # ------------------------------------------------------------------
+
+    def test_build_add_recommendations_generates_add_on(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should generate add-on when position < 20% and thesis strengthening."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            positions={
+                "total_nav": 100000.0,
+                "holdings": [{"ticker": "QQQ", "position_pct": 0.10, "strategy": "leaps_call", "prev_debate_score": 0.60}],
+            },
+            entry_mode={"QQQ": "active_left"},
+            debate_results={"QQQ": {"direction": "bullish", "confidence": 0.80}},
+            options_step2={},
+        )
+        recs = agent._build_add_recommendations(state)
+        assert len(recs) == 1
+        assert recs[0].action == "add"
+        assert recs[0].ticker == "QQQ"
+
+    def test_build_add_recommendations_skips_passive(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should skip passive positions."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            positions={
+                "total_nav": 100000.0,
+                "holdings": [{"ticker": "QQQ", "position_pct": 0.10, "strategy": "stock", "prev_debate_score": 0.60}],
+            },
+            entry_mode={"QQQ": "passive"},
+            debate_results={"QQQ": {"direction": "bullish", "confidence": 0.80}},
+            options_step2={},
+        )
+        recs = agent._build_add_recommendations(state)
+        assert len(recs) == 0
+
+    def test_build_add_recommendations_skips_full_position(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should skip positions already at 20%+."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            positions={
+                "total_nav": 100000.0,
+                "holdings": [{"ticker": "QQQ", "position_pct": 0.25, "strategy": "leaps_call", "prev_debate_score": 0.60}],
+            },
+            entry_mode={"QQQ": "active_left"},
+            debate_results={"QQQ": {"direction": "bullish", "confidence": 0.80}},
+            options_step2={},
+        )
+        recs = agent._build_add_recommendations(state)
+        assert len(recs) == 0
+
+    # ------------------------------------------------------------------
+    # Cooldown
+    # ------------------------------------------------------------------
+
+    def test_in_cooldown_blocks_recent_close(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should return True for ticker closed within cooldown period."""
+        from datetime import datetime, timedelta, timezone
+
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        recent = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
+        state = PipelineState(
+            tickers=["QQQ"],
+            positions={"closed_positions": [{"ticker": "QQQ", "closed_at": recent}]},
+            debate_results={"QQQ": {"direction": "bullish", "confidence": 0.60}},
+            options_step2={},
+        )
+        assert agent._in_cooldown(state, "QQQ") is True
+
+    def test_in_cooldown_overridden_by_strong_reversal(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Strong reversal signal should override cooldown."""
+        from datetime import datetime, timedelta, timezone
+
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        recent = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
+        state = PipelineState(
+            tickers=["QQQ"],
+            positions={"closed_positions": [{"ticker": "QQQ", "closed_at": recent}]},
+            debate_results={"QQQ": {"direction": "reversal", "confidence": 0.85}},
+            options_step2={},
+        )
+        assert agent._in_cooldown(state, "QQQ") is False
+
+    def test_in_cooldown_allows_old_close(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should return False for ticker closed beyond cooldown period."""
+        from datetime import datetime, timedelta, timezone
+
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        old = (datetime.now(timezone.utc) - timedelta(days=60)).isoformat()
+        state = PipelineState(
+            tickers=["QQQ"],
+            positions={"closed_positions": [{"ticker": "QQQ", "closed_at": old}]},
+            debate_results={},
+            options_step2={},
+        )
+        assert agent._in_cooldown(state, "QQQ") is False
+
+    # ------------------------------------------------------------------
+    # Trigger extraction
+    # ------------------------------------------------------------------
+
+    def test_extract_triggers_active_left(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should generate price_below trigger for active_left."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            options_step2={"QQQ": {"entry_mode": "active_left"}},
+            analyst_outputs={"levels": {"QQQ": {"support_levels": [400.0]}}},
+            market_data={"QQQ": {"rsi_14": 50}},
+            positions={},
+            debate_results={},
+        )
+        triggers = agent._extract_triggers(state)
+        assert len(triggers) >= 1
+        price_triggers = [t for t in triggers if t["trigger_type"] == "price_below"]
+        assert len(price_triggers) == 1
+        assert price_triggers[0]["trigger_params"]["threshold"] == 400.0
+
+    def test_extract_triggers_active_right(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should generate price_above trigger for active_right."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            options_step2={"QQQ": {"entry_mode": "active_right"}},
+            analyst_outputs={"levels": {"QQQ": {"resistance_levels": [480.0]}}},
+            market_data={"QQQ": {"rsi_14": 50}},
+            positions={},
+            debate_results={},
+        )
+        triggers = agent._extract_triggers(state)
+        price_triggers = [t for t in triggers if t["trigger_type"] == "price_above"]
+        assert len(price_triggers) == 1
+        assert price_triggers[0]["trigger_params"]["threshold"] == 480.0
+
+    def test_extract_triggers_rsi_oversold(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should generate rsi_below trigger when RSI < 30."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            options_step2={"QQQ": {"entry_mode": "both"}},
+            analyst_outputs={"levels": {}},
+            market_data={"QQQ": {"rsi_14": 25}},
+            positions={},
+            debate_results={},
+        )
+        triggers = agent._extract_triggers(state)
+        rsi_triggers = [t for t in triggers if t["trigger_type"] == "rsi_below"]
+        assert len(rsi_triggers) == 1
+
+    # ------------------------------------------------------------------
+    # CC Timing Guard
+    # ------------------------------------------------------------------
+
+    @pytest.mark.asyncio
+    async def test_cc_timing_generates_when_conditions_met(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should generate CC recommendation when ranging + resistance + high IV."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            entry_mode={"QQQ": "cc"},
+            analyst_outputs={
+                "trend": {"QQQ": {"phase": "ranging"}},
+                "levels": {"QQQ": {"resistance_levels": [480.0]}},
+            },
+            options_step1={"QQQ": {"iv_data": {"percentile": 0.75}}},
+            positions={},
+            debate_results={},
+        )
+        recs = await agent._cc_timing(state)
+        assert len(recs) == 1
+        assert recs[0].strategy == "covered_call"
+        assert recs[0].action == "sell"
+
+    @pytest.mark.asyncio
+    async def test_cc_timing_skips_when_trending(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should skip CC when market is trending (not ranging)."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            entry_mode={"QQQ": "cc"},
+            analyst_outputs={
+                "trend": {"QQQ": {"phase": "markup"}},
+                "levels": {"QQQ": {"resistance_levels": [480.0]}},
+            },
+            options_step1={"QQQ": {"iv_data": {"percentile": 0.75}}},
+            positions={},
+            debate_results={},
+        )
+        recs = await agent._cc_timing(state)
+        assert len(recs) == 0
+
+    @pytest.mark.asyncio
+    async def test_cc_timing_skips_when_low_iv(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should skip CC when IV is not elevated."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        state = PipelineState(
+            tickers=["QQQ"],
+            entry_mode={"QQQ": "cc"},
+            analyst_outputs={
+                "trend": {"QQQ": {"phase": "ranging"}},
+                "levels": {"QQQ": {"resistance_levels": [480.0]}},
+            },
+            options_step1={"QQQ": {"iv_data": {"percentile": 0.30}}},
+            positions={},
+            debate_results={},
+        )
+        recs = await agent._cc_timing(state)
+        assert len(recs) == 0
+
+    # ------------------------------------------------------------------
+    # Ranking and cap
+    # ------------------------------------------------------------------
+
+    def test_rank_and_cap_sorts_by_urgency_then_score(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should sort by urgency weight × score, then cap."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        recs = [
+            Recommendation(ticker="A", action="buy", strategy="stock", rationale="", urgency="low", score=90, delta_dollars_delta=100),
+            Recommendation(ticker="B", action="buy", strategy="stock", rationale="", urgency="high", score=70, delta_dollars_delta=200),
+            Recommendation(ticker="C", action="buy", strategy="stock", rationale="", urgency="medium", score=80, delta_dollars_delta=150),
+        ]
+        result = agent._rank_and_cap(recs)
+        # high×70=210 > medium×80=160 > low×90=90
+        assert result[0].ticker == "B"
+        assert result[1].ticker == "C"
+        assert result[2].ticker == "A"
+
+    def test_rank_and_cap_enforces_daily_limit(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
+        """Should cap at max_daily_recommendations."""
+        with patch("aegis.agents.research_manager_agent.LLMClient"):
+            agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
+        agent._max_daily = 2
+        recs = [
+            Recommendation(ticker="A", action="buy", strategy="stock", rationale="", urgency="high", score=90, delta_dollars_delta=100),
+            Recommendation(ticker="B", action="buy", strategy="stock", rationale="", urgency="high", score=80, delta_dollars_delta=100),
+            Recommendation(ticker="C", action="buy", strategy="stock", rationale="", urgency="high", score=70, delta_dollars_delta=100),
+        ]
+        result = agent._rank_and_cap(recs)
+        assert len(result) == 2

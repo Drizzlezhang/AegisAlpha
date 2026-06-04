@@ -1,4 +1,6 @@
-"""Risk Gate Agent — Pure rule engine for trade safety checks.
+"""Risk Gate Agent v2 — Pure rule engine for trade safety checks.
+
+M2 v1.3: Delta Dollars incremental budget + IV crush guard.
 
 Input: state.recommendations, state.positions, state.market_data, state.macro_data
 Output: state.recommendations (passed), state.blocked_recommendations (blocked)
@@ -25,23 +27,29 @@ DEFAULT_VIX_MAX = 30
 DEFAULT_VIX_DAILY_CHANGE_MAX = 0.20
 DEFAULT_FOMC_BLACKOUT_HOURS = 24
 DEFAULT_EARNINGS_BLACKOUT_HOURS = 48
+DEFAULT_DELTA_BUDGET_PCT = 0.30
+DEFAULT_IV_CRUSH_THRESHOLD = "high"
 
 
 class RiskGateAgent(BaseAgent):
-    """Pure rule engine — checks 8 hard rules against each recommendation.
+    """Pure rule engine — checks 10 rules against each recommendation.
 
     No LLM dependency. Rules are checked in order; first violation blocks
     the recommendation. Blocked recommendations are moved to
     state.blocked_recommendations with a block_reason.
+
+    v2 additions:
+    - Rule 9: Delta Dollars incremental budget
+    - Rule 10: IV crush guard
     """
 
     name = "risk_gate"
     manifest: ClassVar[AgentManifest] = AgentManifest(
         name="risk_gate",
-        version="0.1.0",
+        version="0.2.0",
         requires=["recommendations", "positions", "market_data", "macro_data"],
         provides=["recommendations", "blocked_recommendations", "extensions.risk_gate"],
-        tags=["risk", "gate", "safety"],
+        tags=["risk", "gate", "safety", "delta_budget", "iv_crush"],
         llm_dependency=False,
         parallel_group=None,
         pipeline_mode="full",
@@ -83,6 +91,9 @@ class RiskGateAgent(BaseAgent):
             else:
                 passed.append(rec)
 
+        # v2: Apply Delta Dollars incremental budget (second pass)
+        passed = self._apply_delta_budget(passed, state, blocked)
+
         state.recommendations = passed
         state.blocked_recommendations = blocked
 
@@ -99,7 +110,7 @@ class RiskGateAgent(BaseAgent):
         return state
 
     def _check_rules(self, rec: Recommendation, state: PipelineState) -> str | None:
-        """Check all 8 rules in order. Returns first block reason or None."""
+        """Check all 10 rules in order. Returns first block reason or None."""
         checks = [
             self._check_position_limit,
             self._check_cash_minimum,
@@ -109,6 +120,7 @@ class RiskGateAgent(BaseAgent):
             self._check_fomc_blackout,
             self._check_earnings_blackout,
             self._check_support_based_stop_loss,
+            self._check_iv_crush,  # v2: Rule 9
         ]
         for check in checks:
             reason = check(rec, state)
@@ -253,6 +265,71 @@ class RiskGateAgent(BaseAgent):
         if not stop_loss or stop_loss.get("method") != "support_based":
             return "Support-based stop loss required for active_left entry mode"
         return None
+
+    # ------------------------------------------------------------------
+    # v2 Rule 9: IV crush guard
+    # ------------------------------------------------------------------
+
+    def _check_iv_crush(self, rec: Recommendation, state: PipelineState) -> str | None:
+        """Block recommendations when IV crush risk is high.
+
+        Reads IV crush risk from Options Strategist S1 output.
+        Blocks if level == "high" (configurable threshold).
+        """
+        if rec.action not in ("buy", "add"):
+            return None
+
+        threshold = self._rules.get("iv_crush_block_threshold", DEFAULT_IV_CRUSH_THRESHOLD)
+        s1_data = state.options_step1.get(rec.ticker, {})
+        iv_crush = s1_data.get("iv_crush_risk", {})
+
+        if iv_crush.get("level") == threshold:
+            event = iv_crush.get("upcoming_event", "unknown event")
+            days = iv_crush.get("days_until_event", "?")
+            return f"IV crush risk high: {event} in {days}d"
+
+        return None
+
+    # ------------------------------------------------------------------
+    # v2 Rule 10: Delta Dollars incremental budget (second pass)
+    # ------------------------------------------------------------------
+
+    def _apply_delta_budget(
+        self,
+        passed: list[Recommendation],
+        state: PipelineState,
+        blocked: list[BlockedRecommendation],
+    ) -> list[Recommendation]:
+        """Apply Delta Dollars incremental budget constraint.
+
+        Total delta_dollars_delta of passed recommendations must not exceed
+        NAV × budget_pct. Low-score recommendations are moved to blocked
+        if budget is exceeded.
+        """
+        budget_pct = float(self._rules.get("delta_dollars_budget_pct", DEFAULT_DELTA_BUDGET_PCT))
+        total_nav = float(state.positions.get("total_nav", 100000.0))
+        budget_usd = total_nav * budget_pct
+
+        # Sort by score descending (highest priority first)
+        sorted_recs = sorted(passed, key=lambda r: r.score, reverse=True)
+
+        kept: list[Recommendation] = []
+        used: float = 0.0
+
+        for rec in sorted_recs:
+            delta = abs(rec.delta_dollars_delta)
+            if used + delta <= budget_usd:
+                kept.append(rec)
+                used += delta
+            else:
+                blocked.append(
+                    BlockedRecommendation(
+                        recommendation=rec,
+                        block_reason=f"Delta budget exceeded: ${used:.0f} used of ${budget_usd:.0f} ({(used + delta) / total_nav:.0%} > {budget_pct:.0%})",
+                    )
+                )
+
+        return kept
 
     # ------------------------------------------------------------------
     # Helpers

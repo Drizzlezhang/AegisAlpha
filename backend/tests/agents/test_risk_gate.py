@@ -449,6 +449,8 @@ class TestManifest:
         assert "risk" in m.tags
         assert "gate" in m.tags
         assert "safety" in m.tags
+        assert "delta_budget" in m.tags
+        assert "iv_crush" in m.tags
 
 
 # ---------------------------------------------------------------------------
@@ -468,3 +470,127 @@ class TestExtensions:
         assert summary["total_checked"] == 1
         assert summary["passed"] == 1
         assert summary["blocked"] == 0
+
+
+# ---------------------------------------------------------------------------
+# M2 v1.3 new tests — Delta Dollars budget
+# ---------------------------------------------------------------------------
+
+
+class TestDeltaBudget:
+    @pytest.mark.asyncio
+    async def test_blocks_when_budget_exceeded(self, agent: RiskGateAgent) -> None:
+        """Should block low-score recs when delta budget exceeded."""
+        agent._rules["delta_dollars_budget_pct"] = 0.30
+        rec1 = _make_rec(action="buy", score=90, delta_dollars_delta=25000)
+        rec2 = _make_rec(action="buy", score=70, delta_dollars_delta=10000)
+        rec3 = _make_rec(action="buy", score=50, delta_dollars_delta=5000)
+        state = _make_state(
+            positions={"total_nav": 100000.0, "cash": 50000.0, "total_position_pct": 0.30, "holdings": []}
+        )
+        state.recommendations = [rec1, rec2, rec3]
+        result = await agent.run(state)
+        # Budget = 30000. rec1(25000) + rec2(10000) = 35000 > 30000
+        # rec3(5000) would make it 40000
+        # So rec1 passes, rec2 blocked, rec3 blocked
+        assert len(result.recommendations) >= 1
+        assert result.recommendations[0].score == 90
+        assert len(result.blocked_recommendations) >= 1
+
+    @pytest.mark.asyncio
+    async def test_allows_when_budget_sufficient(self, agent: RiskGateAgent) -> None:
+        """Should allow all recs when within budget."""
+        agent._rules["delta_dollars_budget_pct"] = 0.30
+        rec1 = _make_rec(action="buy", score=90, delta_dollars_delta=10000)
+        rec2 = _make_rec(action="buy", score=80, delta_dollars_delta=10000)
+        state = _make_state(
+            positions={"total_nav": 100000.0, "cash": 50000.0, "total_position_pct": 0.30, "holdings": []}
+        )
+        state.recommendations = [rec1, rec2]
+        result = await agent.run(state)
+        # Budget = 30000, total delta = 20000 → both pass
+        assert len(result.recommendations) == 2
+        assert len(result.blocked_recommendations) == 0
+
+    @pytest.mark.asyncio
+    async def test_block_reason_contains_budget_info(self, agent: RiskGateAgent) -> None:
+        """Block reason should include budget usage details."""
+        agent._rules["delta_dollars_budget_pct"] = 0.30
+        rec1 = _make_rec(action="buy", score=90, delta_dollars_delta=35000)
+        state = _make_state(
+            positions={"total_nav": 100000.0, "cash": 50000.0, "total_position_pct": 0.30, "holdings": []}
+        )
+        state.recommendations = [rec1]
+        result = await agent.run(state)
+        # 35000 > 30000 → blocked
+        assert len(result.blocked_recommendations) == 1
+        assert "Delta budget exceeded" in result.blocked_recommendations[0].block_reason
+
+
+# ---------------------------------------------------------------------------
+# M2 v1.3 new tests — IV crush guard
+# ---------------------------------------------------------------------------
+
+
+class TestIVCrushGuard:
+    @pytest.mark.asyncio
+    async def test_blocks_when_iv_crush_high(self, agent: RiskGateAgent) -> None:
+        """Should block buy when IV crush risk is high."""
+        agent._rules["iv_crush_block_threshold"] = "high"
+        rec = _make_rec(action="buy", ticker="QQQ")
+        state = _make_state(
+            options_step1={
+                "QQQ": {
+                    "iv_crush_risk": {
+                        "level": "high",
+                        "upcoming_event": "QQQ Earnings",
+                        "days_until_event": 3,
+                    }
+                }
+            }
+        )
+        state.recommendations = [rec]
+        result = await agent.run(state)
+        assert len(result.recommendations) == 0
+        assert len(result.blocked_recommendations) == 1
+        assert "IV crush risk" in result.blocked_recommendations[0].block_reason
+
+    @pytest.mark.asyncio
+    async def test_allows_when_iv_crush_medium(self, agent: RiskGateAgent) -> None:
+        """Should allow when IV crush risk is medium (below threshold)."""
+        agent._rules["iv_crush_block_threshold"] = "high"
+        rec = _make_rec(action="buy", ticker="QQQ")
+        state = _make_state(
+            options_step1={
+                "QQQ": {
+                    "iv_crush_risk": {
+                        "level": "medium",
+                        "upcoming_event": "FOMC",
+                        "days_until_event": 4,
+                    }
+                }
+            }
+        )
+        state.recommendations = [rec]
+        result = await agent.run(state)
+        assert len(result.recommendations) == 1
+
+    @pytest.mark.asyncio
+    async def test_skips_for_hold_action(self, agent: RiskGateAgent) -> None:
+        """IV crush guard should not apply to hold actions."""
+        agent._rules["iv_crush_block_threshold"] = "high"
+        rec = _make_rec(action="hold", ticker="QQQ")
+        state = _make_state(
+            options_step1={
+                "QQQ": {
+                    "iv_crush_risk": {
+                        "level": "high",
+                        "upcoming_event": "QQQ Earnings",
+                        "days_until_event": 3,
+                    }
+                }
+            }
+        )
+        state.recommendations = [rec]
+        result = await agent.run(state)
+        assert len(result.recommendations) == 1
