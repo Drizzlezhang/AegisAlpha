@@ -41,10 +41,12 @@ class DataHarvesterAgent(BaseAgent):
         """拉取行情数据（OHLCV + 实时价格）。"""
         tool = self.tools.get("yfinance")
         if tool is None:
-            state.error_flags.append({
-                "agent": self.name,
-                "error": "yfinance tool not found in registry",
-            })
+            state.error_flags.append(
+                {
+                    "agent": self.name,
+                    "error": "yfinance tool not found in registry",
+                }
+            )
             return
 
         for ticker in state.tickers:
@@ -53,17 +55,21 @@ class DataHarvesterAgent(BaseAgent):
                 if result.success:
                     state.market_data[ticker] = result.data
                 else:
-                    state.error_flags.append({
+                    state.error_flags.append(
+                        {
+                            "agent": self.name,
+                            "ticker": ticker,
+                            "error": f"yfinance fetch failed: {result.error}",
+                        }
+                    )
+            except Exception as e:
+                state.error_flags.append(
+                    {
                         "agent": self.name,
                         "ticker": ticker,
-                        "error": f"yfinance fetch failed: {result.error}",
-                    })
-            except Exception as e:
-                state.error_flags.append({
-                    "agent": self.name,
-                    "ticker": ticker,
-                    "error": f"yfinance exception: {str(e)}",
-                })
+                        "error": f"yfinance exception: {str(e)}",
+                    }
+                )
 
     async def _fetch_macro_data(self, state: PipelineState) -> None:
         """拉取宏观数据。
@@ -73,10 +79,12 @@ class DataHarvesterAgent(BaseAgent):
         """
         tool = self.tools.get("fred")
         if tool is None:
-            state.error_flags.append({
-                "agent": self.name,
-                "error": "fred tool not found in registry",
-            })
+            state.error_flags.append(
+                {
+                    "agent": self.name,
+                    "error": "fred tool not found in registry",
+                }
+            )
             return
 
         series = "FEDFUNDS,DGS10,VIX" if state.pipeline_mode == "full" else "VIX"
@@ -89,24 +97,30 @@ class DataHarvesterAgent(BaseAgent):
                 else:
                     state.macro_data = {"raw": result.data}
             else:
-                state.error_flags.append({
-                    "agent": self.name,
-                    "error": f"fred fetch failed: {result.error}",
-                })
+                state.error_flags.append(
+                    {
+                        "agent": self.name,
+                        "error": f"fred fetch failed: {result.error}",
+                    }
+                )
         except Exception as e:
-            state.error_flags.append({
-                "agent": self.name,
-                "error": f"fred exception: {str(e)}",
-            })
+            state.error_flags.append(
+                {
+                    "agent": self.name,
+                    "error": f"fred exception: {str(e)}",
+                }
+            )
 
     async def _fetch_news(self, state: PipelineState) -> None:
         """拉取新闻数据（仅 full 模式）。"""
         tool = self.tools.get("tavily")
         if tool is None:
-            state.error_flags.append({
-                "agent": self.name,
-                "error": "tavily tool not found in registry",
-            })
+            state.error_flags.append(
+                {
+                    "agent": self.name,
+                    "error": "tavily tool not found in registry",
+                }
+            )
             return
 
         for ticker in state.tickers:
@@ -118,14 +132,18 @@ class DataHarvesterAgent(BaseAgent):
                     if isinstance(state.market_data[ticker], dict):
                         state.market_data[ticker]["news"] = result.data
                 else:
-                    state.error_flags.append({
+                    state.error_flags.append(
+                        {
+                            "agent": self.name,
+                            "ticker": ticker,
+                            "error": f"tavily fetch failed: {result.error}",
+                        }
+                    )
+            except Exception as e:
+                state.error_flags.append(
+                    {
                         "agent": self.name,
                         "ticker": ticker,
-                        "error": f"tavily fetch failed: {result.error}",
-                    })
-            except Exception as e:
-                state.error_flags.append({
-                    "agent": self.name,
-                    "ticker": ticker,
-                    "error": f"tavily exception: {str(e)}",
-                })
+                        "error": f"tavily exception: {str(e)}",
+                    }
+                )

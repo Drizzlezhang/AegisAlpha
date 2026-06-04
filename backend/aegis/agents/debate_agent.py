@@ -3,6 +3,7 @@
 Input: state.analyst_outputs[ticker] containing factor_scores
 Output: state.debate_results[ticker] with direction/confidence/rationale/rounds_used
 """
+
 from __future__ import annotations
 
 import json
@@ -59,11 +60,13 @@ class DebateAgent(BaseAgent):
                     state.debate_results[ticker] = result
             except Exception:
                 logger.exception("DebateAgent failed for ticker=%s", ticker)
-                state.error_flags.append({
-                    "agent": self.name,
-                    "ticker": ticker,
-                    "error": "DebateAgent unhandled exception",
-                })
+                state.error_flags.append(
+                    {
+                        "agent": self.name,
+                        "ticker": ticker,
+                        "error": "DebateAgent unhandled exception",
+                    }
+                )
 
         elapsed = time.monotonic() - start_time
         state.agent_timings[self.name] = elapsed
@@ -96,26 +99,34 @@ class DebateAgent(BaseAgent):
 
             # --- Judge ---
             verdict, jt = await self._call_judge(
-                ticker, factor_scores, debate_history,
-                bull_arg, bear_arg, round_num,
+                ticker,
+                factor_scores,
+                debate_history,
+                bull_arg,
+                bear_arg,
+                round_num,
             )
             total_tokens += jt
 
             if verdict is None:
                 # JSON parse failure after retry
-                state.error_flags.append({
-                    "agent": self.name,
-                    "ticker": ticker,
-                    "round": round_num,
-                    "error": "Judge JSON parse failure after retry",
-                })
+                state.error_flags.append(
+                    {
+                        "agent": self.name,
+                        "ticker": ticker,
+                        "round": round_num,
+                        "error": "Judge JSON parse failure after retry",
+                    }
+                )
                 break
 
-            debate_history.append({
-                "round": round_num,
-                "bull": bull_arg,
-                "bear": bear_arg,
-            })
+            debate_history.append(
+                {
+                    "round": round_num,
+                    "bull": bull_arg,
+                    "bear": bear_arg,
+                }
+            )
             last_verdict = verdict
 
             # --- Early termination ---
@@ -131,7 +142,9 @@ class DebateAgent(BaseAgent):
             if consecutive_same >= 2:
                 logger.info(
                     "Debate early stop for %s at round %d (confidence=%.2f)",
-                    ticker, round_num, confidence,
+                    ticker,
+                    round_num,
+                    confidence,
                 )
                 break
 
@@ -234,7 +247,9 @@ class DebateAgent(BaseAgent):
 
             logger.warning(
                 "Judge JSON parse failed for %s round %d attempt %d",
-                ticker, round_num, attempt + 1,
+                ticker,
+                round_num,
+                attempt + 1,
             )
 
         return None, total_tokens
@@ -244,9 +259,7 @@ class DebateAgent(BaseAgent):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _get_factor_scores(
-        ticker: str, state: PipelineState
-    ) -> list[dict[str, Any]]:
+    def _get_factor_scores(ticker: str, state: PipelineState) -> list[dict[str, Any]]:
         """Extract factor_scores from analyst_outputs for a ticker."""
         outputs = state.analyst_outputs.get(ticker, {})
         scores: list[dict[str, Any]] = outputs.get("factor_scores", [])

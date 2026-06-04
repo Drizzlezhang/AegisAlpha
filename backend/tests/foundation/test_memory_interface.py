@@ -1,4 +1,5 @@
 """Test MemoryInterface contract — 5 abstract methods."""
+
 import inspect
 
 from aegis.memory.interface import MemoryInterface

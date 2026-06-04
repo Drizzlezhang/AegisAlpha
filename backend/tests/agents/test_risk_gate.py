@@ -1,8 +1,9 @@
 """Test RiskGateAgent — 8 rules + all-pass + boundary + support_based missing."""
+
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -61,16 +62,19 @@ def agent(mock_memory: Any, mock_tools: Any, mock_config: Any) -> RiskGateAgent:
 # Rule 1: Position limit
 # ---------------------------------------------------------------------------
 
+
 class TestPositionLimit:
     @pytest.mark.asyncio
     async def test_blocks_when_over_80pct(self, agent: RiskGateAgent) -> None:
         rec = _make_rec(action="buy")
-        state = _make_state(positions={
-            "total_nav": 100000.0,
-            "cash": 10000.0,
-            "total_position_pct": 0.85,
-            "holdings": [],
-        })
+        state = _make_state(
+            positions={
+                "total_nav": 100000.0,
+                "cash": 10000.0,
+                "total_position_pct": 0.85,
+                "holdings": [],
+            }
+        )
         state.recommendations = [rec]
         result = await agent.run(state)
         assert len(result.recommendations) == 0
@@ -81,12 +85,14 @@ class TestPositionLimit:
     async def test_allows_at_80pct_boundary(self, agent: RiskGateAgent) -> None:
         """80% exactly should pass (rule is > 80%, not >=)."""
         rec = _make_rec(action="buy")
-        state = _make_state(positions={
-            "total_nav": 100000.0,
-            "cash": 20000.0,
-            "total_position_pct": 0.80,
-            "holdings": [],
-        })
+        state = _make_state(
+            positions={
+                "total_nav": 100000.0,
+                "cash": 20000.0,
+                "total_position_pct": 0.80,
+                "holdings": [],
+            }
+        )
         state.recommendations = [rec]
         result = await agent.run(state)
         assert len(result.recommendations) == 1
@@ -96,12 +102,14 @@ class TestPositionLimit:
     async def test_skips_for_hold_action(self, agent: RiskGateAgent) -> None:
         """Position limit only applies to buy/add, not hold."""
         rec = _make_rec(action="hold")
-        state = _make_state(positions={
-            "total_nav": 100000.0,
-            "cash": 10000.0,
-            "total_position_pct": 0.85,
-            "holdings": [],
-        })
+        state = _make_state(
+            positions={
+                "total_nav": 100000.0,
+                "cash": 10000.0,
+                "total_position_pct": 0.85,
+                "holdings": [],
+            }
+        )
         state.recommendations = [rec]
         result = await agent.run(state)
         assert len(result.recommendations) == 1
@@ -111,16 +119,19 @@ class TestPositionLimit:
 # Rule 2: Cash minimum
 # ---------------------------------------------------------------------------
 
+
 class TestCashMinimum:
     @pytest.mark.asyncio
     async def test_blocks_when_cash_below_20pct(self, agent: RiskGateAgent) -> None:
         rec = _make_rec(action="buy")
-        state = _make_state(positions={
-            "total_nav": 100000.0,
-            "cash": 10000.0,
-            "total_position_pct": 0.50,
-            "holdings": [],
-        })
+        state = _make_state(
+            positions={
+                "total_nav": 100000.0,
+                "cash": 10000.0,
+                "total_position_pct": 0.50,
+                "holdings": [],
+            }
+        )
         state.recommendations = [rec]
         result = await agent.run(state)
         assert len(result.recommendations) == 0
@@ -130,12 +141,14 @@ class TestCashMinimum:
     @pytest.mark.asyncio
     async def test_allows_when_cash_sufficient(self, agent: RiskGateAgent) -> None:
         rec = _make_rec(action="buy")
-        state = _make_state(positions={
-            "total_nav": 100000.0,
-            "cash": 30000.0,
-            "total_position_pct": 0.50,
-            "holdings": [],
-        })
+        state = _make_state(
+            positions={
+                "total_nav": 100000.0,
+                "cash": 30000.0,
+                "total_position_pct": 0.50,
+                "holdings": [],
+            }
+        )
         state.recommendations = [rec]
         result = await agent.run(state)
         assert len(result.recommendations) == 1
@@ -144,6 +157,7 @@ class TestCashMinimum:
 # ---------------------------------------------------------------------------
 # Rule 3: Blacklist
 # ---------------------------------------------------------------------------
+
 
 class TestBlacklist:
     @pytest.mark.asyncio
@@ -170,6 +184,7 @@ class TestBlacklist:
 # ---------------------------------------------------------------------------
 # Rule 4: LEAPS DTE
 # ---------------------------------------------------------------------------
+
 
 class TestLeapsDTE:
     @pytest.mark.asyncio
@@ -246,6 +261,7 @@ class TestLeapsDTE:
 # Rule 5: VIX
 # ---------------------------------------------------------------------------
 
+
 class TestVIX:
     @pytest.mark.asyncio
     async def test_blocks_vix_spike(self, agent: RiskGateAgent) -> None:
@@ -265,9 +281,11 @@ class TestVIX:
     @pytest.mark.asyncio
     async def test_blocks_vix_daily_spike(self, agent: RiskGateAgent) -> None:
         rec = _make_rec(action="buy")
-        state = _make_state(market_data={
-            "QQQ": {"vix": 25.0, "vix_daily_change_pct": 0.25, "price": 420.0},
-        })
+        state = _make_state(
+            market_data={
+                "QQQ": {"vix": 25.0, "vix_daily_change_pct": 0.25, "price": 420.0},
+            }
+        )
         state.recommendations = [rec]
         result = await agent.run(state)
         assert len(result.recommendations) == 0
@@ -286,15 +304,18 @@ class TestVIX:
 # Rule 6: FOMC blackout
 # ---------------------------------------------------------------------------
 
+
 class TestFOMCBlackout:
     @pytest.mark.asyncio
     async def test_blocks_leaps_during_fomc_blackout(self, agent: RiskGateAgent) -> None:
-        fomc_time = datetime.now(timezone.utc) + timedelta(hours=12)
+        fomc_time = datetime.now(UTC) + timedelta(hours=12)
         rec = _make_rec(action="buy", strategy="leaps_call")
-        state = _make_state(macro_data={
-            "fomc_meeting": fomc_time.isoformat(),
-            "next_earnings": {},
-        })
+        state = _make_state(
+            macro_data={
+                "fomc_meeting": fomc_time.isoformat(),
+                "next_earnings": {},
+            }
+        )
         state.recommendations = [rec]
         result = await agent.run(state)
         assert len(result.recommendations) == 0
@@ -303,12 +324,14 @@ class TestFOMCBlackout:
 
     @pytest.mark.asyncio
     async def test_allows_non_leaps_during_fomc(self, agent: RiskGateAgent) -> None:
-        fomc_time = datetime.now(timezone.utc) + timedelta(hours=12)
+        fomc_time = datetime.now(UTC) + timedelta(hours=12)
         rec = _make_rec(action="buy", strategy="stock")
-        state = _make_state(macro_data={
-            "fomc_meeting": fomc_time.isoformat(),
-            "next_earnings": {},
-        })
+        state = _make_state(
+            macro_data={
+                "fomc_meeting": fomc_time.isoformat(),
+                "next_earnings": {},
+            }
+        )
         state.recommendations = [rec]
         result = await agent.run(state)
         assert len(result.recommendations) == 1
@@ -325,6 +348,7 @@ class TestFOMCBlackout:
 # ---------------------------------------------------------------------------
 # Rule 7: Earnings blackout
 # ---------------------------------------------------------------------------
+
 
 class TestEarningsBlackout:
     @pytest.mark.asyncio
@@ -360,6 +384,7 @@ class TestEarningsBlackout:
 # ---------------------------------------------------------------------------
 # Rule 8: Support-based stop loss
 # ---------------------------------------------------------------------------
+
 
 class TestSupportBasedStopLoss:
     @pytest.mark.asyncio
@@ -397,6 +422,7 @@ class TestSupportBasedStopLoss:
 # All-pass scenario
 # ---------------------------------------------------------------------------
 
+
 class TestAllPass:
     @pytest.mark.asyncio
     async def test_all_recommendations_pass(self, agent: RiskGateAgent) -> None:
@@ -413,6 +439,7 @@ class TestAllPass:
 # Manifest compliance
 # ---------------------------------------------------------------------------
 
+
 class TestManifest:
     def test_manifest_compliance(self, agent: RiskGateAgent) -> None:
         m = agent.manifest
@@ -427,6 +454,7 @@ class TestManifest:
 # ---------------------------------------------------------------------------
 # Extensions
 # ---------------------------------------------------------------------------
+
 
 class TestExtensions:
     @pytest.mark.asyncio

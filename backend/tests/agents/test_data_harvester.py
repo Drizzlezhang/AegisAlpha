@@ -1,6 +1,6 @@
 """Test DataHarvesterAgent — full mode, lightweight mode, error handling, edge cases."""
+
 from typing import Any
-from unittest.mock import AsyncMock
 
 import pytest
 
@@ -18,7 +18,10 @@ class MockYFinanceTool:
         ticker = kwargs.get("ticker", "UNKNOWN")
         return ToolResult(
             success=True,
-            data={"ticker": ticker, "ohlcv": {"open": 100, "high": 105, "low": 99, "close": 103, "volume": 1000000}},
+            data={
+                "ticker": ticker,
+                "ohlcv": {"open": 100, "high": 105, "low": 99, "close": 103, "volume": 1000000},
+            },
             source="yfinance",
         )
 

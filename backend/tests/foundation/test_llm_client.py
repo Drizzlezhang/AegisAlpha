@@ -1,4 +1,5 @@
 """Test LLMClient — verify base_url and api_key injection."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

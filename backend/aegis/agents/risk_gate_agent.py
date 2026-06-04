@@ -3,6 +3,7 @@
 Input: state.recommendations, state.positions, state.market_data, state.macro_data
 Output: state.recommendations (passed), state.blocked_recommendations (blocked)
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -73,21 +74,27 @@ class RiskGateAgent(BaseAgent):
         for rec in state.recommendations:
             reason = self._check_rules(rec, state)
             if reason:
-                blocked.append(BlockedRecommendation(
-                    recommendation=rec,
-                    block_reason=reason,
-                ))
+                blocked.append(
+                    BlockedRecommendation(
+                        recommendation=rec,
+                        block_reason=reason,
+                    )
+                )
             else:
                 passed.append(rec)
 
         state.recommendations = passed
         state.blocked_recommendations = blocked
 
-        self.write_extension(state, "summary", {
-            "total_checked": len(passed) + len(blocked),
-            "passed": len(passed),
-            "blocked": len(blocked),
-        })
+        self.write_extension(
+            state,
+            "summary",
+            {
+                "total_checked": len(passed) + len(blocked),
+                "passed": len(passed),
+                "blocked": len(blocked),
+            },
+        )
 
         return state
 

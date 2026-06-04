@@ -1,0 +1,6 @@
+{# Frozen at M1 v1.0. #}
+❗ 错误告警
+
+{% for err in error_flags %}
+- [{{ err.agent }}] {{ err.error }}
+{% endfor %}

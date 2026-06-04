@@ -70,10 +70,7 @@ disable_error_code = ["misc"]
 module = [
     "loguru",
     "tenacity",
-    "chromadb",
-    "pyarrow",
     "telegram",
-    "apscheduler",
     "pydantic",
     "pydantic_settings",
     "sqlalchemy",
@@ -88,7 +85,5 @@ module = [
     "pandas",
     "yaml",
     "yfinance",
-    "fredapi",
-    "tavily",
 ]
 ignore_missing_imports = true

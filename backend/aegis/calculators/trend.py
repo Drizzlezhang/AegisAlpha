@@ -2,6 +2,7 @@
 
 No LLM, no IO, no side effects.
 """
+
 from __future__ import annotations
 
 from typing import Any

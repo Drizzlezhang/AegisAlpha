@@ -1,7 +1,6 @@
 """Test ToolCache — Parquet + SQLite two-tier cache."""
 
 import tempfile
-from pathlib import Path
 
 import pandas as pd
 import pytest

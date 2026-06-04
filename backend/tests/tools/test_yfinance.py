@@ -24,7 +24,13 @@ class TestYFinanceAdapter:
     async def test_fetch_history_success(self, adapter: YFinanceAdapter) -> None:
         """Should return OHLCV data on success."""
         mock_df = pd.DataFrame(
-            {"Open": [450.0], "High": [455.0], "Low": [448.0], "Close": [453.0], "Volume": [35000000]}
+            {
+                "Open": [450.0],
+                "High": [455.0],
+                "Low": [448.0],
+                "Close": [453.0],
+                "Volume": [35000000],
+            }
         )
         mock_ticker = MagicMock()
         mock_ticker.history.return_value = mock_df

@@ -1,4 +1,5 @@
 """Test BaseAgent contract — abstract methods, manifest, extensions."""
+
 from typing import Any
 
 import pytest

@@ -47,13 +47,16 @@ class TestFREDAdapter:
     @pytest.mark.asyncio
     async def test_fetch_single_series_success(self, adapter: FREDAdapter) -> None:
         """Should return observations for a single series."""
-        response = _make_mock_response(200, {
-            "observations": [
-                {"date": "2024-06-01", "value": "5.33"},
-                {"date": "2024-05-01", "value": "5.33"},
-            ],
-            "series_id": "FEDFUNDS",
-        })
+        response = _make_mock_response(
+            200,
+            {
+                "observations": [
+                    {"date": "2024-06-01", "value": "5.33"},
+                    {"date": "2024-05-01", "value": "5.33"},
+                ],
+                "series_id": "FEDFUNDS",
+            },
+        )
         mock_client = _mock_async_client(response)
 
         with (
@@ -69,9 +72,12 @@ class TestFREDAdapter:
     @pytest.mark.asyncio
     async def test_fetch_multi_series_success(self, adapter: FREDAdapter) -> None:
         """Should return data for multiple series."""
-        response = _make_mock_response(200, {
-            "observations": [{"date": "2024-06-01", "value": "5.33"}],
-        })
+        response = _make_mock_response(
+            200,
+            {
+                "observations": [{"date": "2024-06-01", "value": "5.33"}],
+            },
+        )
         mock_client = _mock_async_client(response)
 
         with (
@@ -103,10 +109,13 @@ class TestFREDAdapter:
     @pytest.mark.asyncio
     async def test_fetch_api_error(self, adapter: FREDAdapter) -> None:
         """Should return error when FRED API returns error_code."""
-        response = _make_mock_response(200, {
-            "error_code": 400,
-            "error_message": "Bad request",
-        })
+        response = _make_mock_response(
+            200,
+            {
+                "error_code": 400,
+                "error_message": "Bad request",
+            },
+        )
         mock_client = _mock_async_client(response)
 
         with (

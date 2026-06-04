@@ -3,6 +3,7 @@
 Input: state.options_step2, state.debate_results, state.positions
 Output: state.recommendations (sorted), state.pending_triggers (placeholder)
 """
+
 from __future__ import annotations
 
 import json
@@ -50,10 +51,12 @@ class ResearchManagerAgent(BaseAgent):
         try:
             await self._synthesize(state)
         except Exception as e:
-            state.error_flags.append({
-                "agent": self.name,
-                "error": str(e),
-            })
+            state.error_flags.append(
+                {
+                    "agent": self.name,
+                    "error": str(e),
+                }
+            )
 
         # M1 placeholder: pending_triggers not implemented yet
         state.pending_triggers = []
@@ -92,10 +95,12 @@ class ResearchManagerAgent(BaseAgent):
         try:
             result = json.loads(response["content"])
         except (json.JSONDecodeError, KeyError):
-            state.error_flags.append({
-                "agent": self.name,
-                "error": "Failed to parse LLM JSON response",
-            })
+            state.error_flags.append(
+                {
+                    "agent": self.name,
+                    "error": "Failed to parse LLM JSON response",
+                }
+            )
             return
 
         raw_recs = result.get("recommendations", [])
@@ -118,10 +123,14 @@ class ResearchManagerAgent(BaseAgent):
         recommendations = self._sort_recommendations(recommendations)
         state.recommendations = recommendations
 
-        self.write_extension(state, "synthesis_raw", {
-            "total_recommendations": len(recommendations),
-            "llm_model": response.get("model", "unknown"),
-        })
+        self.write_extension(
+            state,
+            "synthesis_raw",
+            {
+                "total_recommendations": len(recommendations),
+                "llm_model": response.get("model", "unknown"),
+            },
+        )
 
     @staticmethod
     def _sort_recommendations(recs: list[Recommendation]) -> list[Recommendation]:

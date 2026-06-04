@@ -1,4 +1,5 @@
 """Test DebateAgent — early stop, max rounds, JSON parse failure, token timing."""
+
 from __future__ import annotations
 
 import json
@@ -29,13 +30,15 @@ def _make_state(ticker: str = "QQQ") -> PipelineState:
 
 def _judge_response(direction: str, confidence: float, rounds_used: int) -> dict[str, Any]:
     return {
-        "content": json.dumps({
-            "direction": direction,
-            "confidence": confidence,
-            "rationale": f"Mock verdict: {direction} at {confidence}",
-            "rounds_used": rounds_used,
-            "entry_mode_hint": "",
-        }),
+        "content": json.dumps(
+            {
+                "direction": direction,
+                "confidence": confidence,
+                "rationale": f"Mock verdict: {direction} at {confidence}",
+                "rounds_used": rounds_used,
+                "entry_mode_hint": "",
+            }
+        ),
         "usage": {"total_tokens": 50},
         "model": "gpt-4o-mini",
     }
@@ -61,9 +64,12 @@ def _bear_response() -> dict[str, Any]:
 # Test: early stop
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_debate_early_stop_same_direction_high_confidence(
-    mock_memory: Any, mock_tools: Any, mock_config: Any,
+    mock_memory: Any,
+    mock_tools: Any,
+    mock_config: Any,
 ) -> None:
     """Early stop: Judge same direction + confidence > 0.85 for 2 consecutive rounds."""
     # Round 1: bullish 0.90, Round 2: bullish 0.88 → early stop after round 2
@@ -97,9 +103,7 @@ async def test_debate_early_stop_same_direction_high_confidence(
         mock_llm.chat = AsyncMock(side_effect=mock_chat)
         mock_llm_cls.return_value = mock_llm
 
-        agent = DebateAgent(
-            memory=mock_memory, tools=mock_tools, config={"max_rounds": 3}
-        )
+        agent = DebateAgent(memory=mock_memory, tools=mock_tools, config={"max_rounds": 3})
         state = _make_state()
         result_state = await agent.run(state)
 
@@ -120,9 +124,12 @@ async def test_debate_early_stop_same_direction_high_confidence(
 # Test: max rounds
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_debate_max_rounds_alternating_direction(
-    mock_memory: Any, mock_tools: Any, mock_config: Any,
+    mock_memory: Any,
+    mock_tools: Any,
+    mock_config: Any,
 ) -> None:
     """Debate should run all 3 rounds when Judge alternates direction each round."""
     judge_calls = [
@@ -155,9 +162,7 @@ async def test_debate_max_rounds_alternating_direction(
         mock_llm.chat = AsyncMock(side_effect=mock_chat)
         mock_llm_cls.return_value = mock_llm
 
-        agent = DebateAgent(
-            memory=mock_memory, tools=mock_tools, config={"max_rounds": 3}
-        )
+        agent = DebateAgent(memory=mock_memory, tools=mock_tools, config={"max_rounds": 3})
         state = _make_state()
         result_state = await agent.run(state)
 
@@ -174,9 +179,12 @@ async def test_debate_max_rounds_alternating_direction(
 # Test: JSON parse failure
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_debate_json_parse_failure_writes_error_flag(
-    mock_memory: Any, mock_tools: Any, mock_config: Any,
+    mock_memory: Any,
+    mock_tools: Any,
+    mock_config: Any,
 ) -> None:
     """When Judge returns non-JSON twice, error_flag written and Pipeline continues."""
     call_index = 0
@@ -208,9 +216,7 @@ async def test_debate_json_parse_failure_writes_error_flag(
         mock_llm.chat = AsyncMock(side_effect=mock_chat)
         mock_llm_cls.return_value = mock_llm
 
-        agent = DebateAgent(
-            memory=mock_memory, tools=mock_tools, config={"max_rounds": 3}
-        )
+        agent = DebateAgent(memory=mock_memory, tools=mock_tools, config={"max_rounds": 3})
         state = _make_state()
         result_state = await agent.run(state)
 
@@ -230,9 +236,12 @@ async def test_debate_json_parse_failure_writes_error_flag(
 # Test: model selection (AC-1)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_debate_model_selection_bull_bear_primary_judge_mini(
-    mock_memory: Any, mock_tools: Any, mock_config: Any,
+    mock_memory: Any,
+    mock_tools: Any,
+    mock_config: Any,
 ) -> None:
     """Bull/Bear should use LLM_MODEL_PRIMARY, Judge should use LLM_MODEL_MINI."""
     judge_calls = [
@@ -266,9 +275,7 @@ async def test_debate_model_selection_bull_bear_primary_judge_mini(
         mock_llm.chat = AsyncMock(side_effect=mock_chat)
         mock_llm_cls.return_value = mock_llm
 
-        agent = DebateAgent(
-            memory=mock_memory, tools=mock_tools, config={"max_rounds": 3}
-        )
+        agent = DebateAgent(memory=mock_memory, tools=mock_tools, config={"max_rounds": 3})
         state = _make_state()
         await agent.run(state)
 
@@ -284,9 +291,12 @@ async def test_debate_model_selection_bull_bear_primary_judge_mini(
 # Test: token timing (AC-6)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_debate_token_timing_recorded(
-    mock_memory: Any, mock_tools: Any, mock_config: Any,
+    mock_memory: Any,
+    mock_tools: Any,
+    mock_config: Any,
 ) -> None:
     """Token consumption should be written to state.agent_timings['debate_agent']."""
     judge_calls = [
@@ -318,9 +328,7 @@ async def test_debate_token_timing_recorded(
         mock_llm.chat = AsyncMock(side_effect=mock_chat)
         mock_llm_cls.return_value = mock_llm
 
-        agent = DebateAgent(
-            memory=mock_memory, tools=mock_tools, config={"max_rounds": 3}
-        )
+        agent = DebateAgent(memory=mock_memory, tools=mock_tools, config={"max_rounds": 3})
         state = _make_state()
         result_state = await agent.run(state)
 

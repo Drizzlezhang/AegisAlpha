@@ -1,4 +1,5 @@
 """Test PipelineState v1.2 contract — all fields must exist with correct types."""
+
 from datetime import datetime
 
 from aegis.pipeline.state import (

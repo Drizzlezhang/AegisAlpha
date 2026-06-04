@@ -1,11 +1,11 @@
 """Tests for Black-Scholes Greeks calculator."""
 
-
 import pytest
 
 from aegis.calculators.greeks import compute_greeks, compute_implied_volatility
 
 # ── Call option tests ──────────────────────────────────────────────
+
 
 def test_greeks_call_atm():
     """ATM call: S=K=100, T=0.5, r=0.05, sigma=0.20."""
@@ -60,6 +60,7 @@ def test_greeks_call_deep_otm():
 
 # ── Put option tests ────────────────────────────────────────────────
 
+
 def test_greeks_put_atm():
     """ATM put: S=K=100, T=0.5, r=0.05, sigma=0.20."""
     result = compute_greeks("put", S=100.0, K=100.0, T=0.5, r=0.05, sigma=0.20)
@@ -110,6 +111,7 @@ def test_greeks_put_deep_otm():
 
 # ── Boundary cases ──────────────────────────────────────────────────
 
+
 def test_greeks_t_near_zero():
     """T → 0: delta becomes step function, others → 0."""
     result = compute_greeks("call", S=105.0, K=100.0, T=1e-7, r=0.05, sigma=0.20)
@@ -139,6 +141,7 @@ def test_greeks_put_call_parity_gamma():
 
 
 # ── Implied volatility tests ────────────────────────────────────────
+
 
 def test_implied_volatility_call():
     """IV should recover the input sigma from a BS price."""

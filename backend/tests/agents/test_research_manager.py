@@ -1,4 +1,5 @@
 """Test ResearchManagerAgent — ranking, pending_triggers, LLM failure, manifest."""
+
 from __future__ import annotations
 
 import json
@@ -9,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from aegis.agents.research_manager_agent import ResearchManagerAgent
-from aegis.pipeline.state import PipelineState, Recommendation
+from aegis.pipeline.state import PipelineState
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
@@ -28,11 +29,37 @@ class TestResearchManager:
         self, mock_memory: Any, mock_tools: Any, mock_config: Any
     ) -> None:
         """Should generate recommendations sorted by urgency × score."""
-        mock_response = _llm_response([
-            {"ticker": "QQQ", "action": "buy", "strategy": "leaps_call", "rationale": "bullish setup", "urgency": "low", "score": 90, "delta_dollars_delta": 500},
-            {"ticker": "QQQ", "action": "buy", "strategy": "stock", "rationale": "momentum", "urgency": "high", "score": 70, "delta_dollars_delta": 300},
-            {"ticker": "QQQ", "action": "hold", "strategy": "stock", "rationale": "wait", "urgency": "medium", "score": 50, "delta_dollars_delta": 0},
-        ])
+        mock_response = _llm_response(
+            [
+                {
+                    "ticker": "QQQ",
+                    "action": "buy",
+                    "strategy": "leaps_call",
+                    "rationale": "bullish setup",
+                    "urgency": "low",
+                    "score": 90,
+                    "delta_dollars_delta": 500,
+                },
+                {
+                    "ticker": "QQQ",
+                    "action": "buy",
+                    "strategy": "stock",
+                    "rationale": "momentum",
+                    "urgency": "high",
+                    "score": 70,
+                    "delta_dollars_delta": 300,
+                },
+                {
+                    "ticker": "QQQ",
+                    "action": "hold",
+                    "strategy": "stock",
+                    "rationale": "wait",
+                    "urgency": "medium",
+                    "score": 50,
+                    "delta_dollars_delta": 0,
+                },
+            ]
+        )
         with patch("aegis.agents.research_manager_agent.LLMClient") as mock_llm_cls:
             mock_llm = AsyncMock()
             mock_llm.chat = AsyncMock(return_value=mock_response)
@@ -58,9 +85,19 @@ class TestResearchManager:
         self, mock_memory: Any, mock_tools: Any, mock_config: Any
     ) -> None:
         """Should set pending_triggers = [] as M1 placeholder."""
-        mock_response = _llm_response([
-            {"ticker": "QQQ", "action": "hold", "strategy": "stock", "rationale": "wait", "urgency": "medium", "score": 50, "delta_dollars_delta": 0},
-        ])
+        mock_response = _llm_response(
+            [
+                {
+                    "ticker": "QQQ",
+                    "action": "hold",
+                    "strategy": "stock",
+                    "rationale": "wait",
+                    "urgency": "medium",
+                    "score": 50,
+                    "delta_dollars_delta": 0,
+                },
+            ]
+        )
         with patch("aegis.agents.research_manager_agent.LLMClient") as mock_llm_cls:
             mock_llm = AsyncMock()
             mock_llm.chat = AsyncMock(return_value=mock_response)
@@ -83,7 +120,9 @@ class TestResearchManager:
         """Should write error_flags on JSON parse failure, not crash."""
         with patch("aegis.agents.research_manager_agent.LLMClient") as mock_llm_cls:
             mock_llm = AsyncMock()
-            mock_llm.chat = AsyncMock(return_value={"content": "not json", "usage": {}, "model": "gpt-4o"})
+            mock_llm.chat = AsyncMock(
+                return_value={"content": "not json", "usage": {}, "model": "gpt-4o"}
+            )
             mock_llm_cls.return_value = mock_llm
 
             agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
@@ -123,9 +162,19 @@ class TestResearchManager:
         self, mock_memory: Any, mock_tools: Any, mock_config: Any
     ) -> None:
         """Should write synthesis_raw metadata to extensions."""
-        mock_response = _llm_response([
-            {"ticker": "QQQ", "action": "buy", "strategy": "leaps_call", "rationale": "test", "urgency": "high", "score": 80, "delta_dollars_delta": 500},
-        ])
+        mock_response = _llm_response(
+            [
+                {
+                    "ticker": "QQQ",
+                    "action": "buy",
+                    "strategy": "leaps_call",
+                    "rationale": "test",
+                    "urgency": "high",
+                    "score": 80,
+                    "delta_dollars_delta": 500,
+                },
+            ]
+        )
         with patch("aegis.agents.research_manager_agent.LLMClient") as mock_llm_cls:
             mock_llm = AsyncMock()
             mock_llm.chat = AsyncMock(return_value=mock_response)
@@ -144,9 +193,7 @@ class TestResearchManager:
             assert "synthesis_raw" in ext
             assert ext["synthesis_raw"]["total_recommendations"] == 1
 
-    def test_manifest_compliance(
-        self, mock_memory: Any, mock_tools: Any, mock_config: Any
-    ) -> None:
+    def test_manifest_compliance(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
         with patch("aegis.agents.research_manager_agent.LLMClient"):
             agent = ResearchManagerAgent(memory=mock_memory, tools=mock_tools, config=mock_config)
         m = agent.manifest

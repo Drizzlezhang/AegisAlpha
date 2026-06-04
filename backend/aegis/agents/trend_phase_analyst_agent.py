@@ -2,6 +2,7 @@
 
 Pure calculation, no LLM dependency. Writes to analyst_outputs and extensions.
 """
+
 from __future__ import annotations
 
 from typing import Any, ClassVar
@@ -46,9 +47,7 @@ class TrendPhaseAnalystAgent(BaseAgent):
                     "wyckoff_phase": wyckoff["phase"],
                     "trend_direction": trend["trend_direction"],
                     "trend_score": trend["trend_score"],
-                    "confidence": round(
-                        min(wyckoff["confidence"], trend["confidence"]), 2
-                    ),
+                    "confidence": round(min(wyckoff["confidence"], trend["confidence"]), 2),
                 }
 
                 self.write_extension(state, "wyckoff_raw", wyckoff)

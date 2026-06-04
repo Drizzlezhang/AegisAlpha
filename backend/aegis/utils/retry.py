@@ -1,4 +1,5 @@
 """Retry utilities using tenacity."""
+
 from collections.abc import Callable
 from typing import Any
 

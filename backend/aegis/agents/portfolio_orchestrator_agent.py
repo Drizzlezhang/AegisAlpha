@@ -75,11 +75,13 @@ class PortfolioOrchestratorAgent(BaseAgent):
             mode = pos.get("entry_mode", "passive")
 
             if mode not in _VALID_ENTRY_MODES:
-                state.error_flags.append({
-                    "agent": self.name,
-                    "ticker": ticker,
-                    "error": f"unknown entry_mode '{mode}', defaulting to passive",
-                })
+                state.error_flags.append(
+                    {
+                        "agent": self.name,
+                        "ticker": ticker,
+                        "error": f"unknown entry_mode '{mode}', defaulting to passive",
+                    }
+                )
                 mode = "passive"
 
             state.entry_mode[ticker] = cast(_EntryMode, mode)
@@ -92,9 +94,7 @@ class PortfolioOrchestratorAgent(BaseAgent):
         state.tickers_holdings_active = list(dict.fromkeys(active))
         state.tickers_holdings_passive = list(dict.fromkeys(passive))
 
-    def _compute_health_scores(
-        self, positions: list[dict[str, Any]], state: PipelineState
-    ) -> None:
+    def _compute_health_scores(self, positions: list[dict[str, Any]], state: PipelineState) -> None:
         """计算每个持仓的基础 health_score（0-100）。
 
         公式:
@@ -127,18 +127,18 @@ class PortfolioOrchestratorAgent(BaseAgent):
                 pnl_score = max(0.0, min(100.0, 50.0 + pnl_ratio * 100.0))
             else:
                 pnl_score = 50.0
-                state.error_flags.append({
-                    "agent": self.name,
-                    "ticker": ticker,
-                    "error": "missing avg_cost or current_price, using neutral pnl_score=50",
-                })
+                state.error_flags.append(
+                    {
+                        "agent": self.name,
+                        "ticker": ticker,
+                        "error": "missing avg_cost or current_price, using neutral pnl_score=50",
+                    }
+                )
 
             health_score = 0.4 * dte_score + 0.6 * pnl_score
             state.health_scores[ticker] = round(health_score, 2)
 
-    def _populate_positions(
-        self, positions: list[dict[str, Any]], state: PipelineState
-    ) -> None:
+    def _populate_positions(self, positions: list[dict[str, Any]], state: PipelineState) -> None:
         """将持仓详情写入 state.positions。"""
         for pos in positions:
             ticker = pos.get("ticker", "")

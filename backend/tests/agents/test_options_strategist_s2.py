@@ -1,4 +1,5 @@
-"""Test OptionsStrategistS2Agent — contract generation, stop_loss modes, empty candidates, manifest."""
+"""Test OptionsStrategistS2Agent — contract gen, stop_loss modes, empty candidates, manifest."""
+
 from __future__ import annotations
 
 import json
@@ -37,20 +38,52 @@ class TestOptionsStrategistS2:
         self, mock_memory: Any, mock_tools: Any, mock_config: Any
     ) -> None:
         """Should generate contracts with support_based stop_loss when levels available."""
-        mock_response = _llm_response([
-            {"strike": 450.0, "type": "call", "entry_price": 22.50, "rationale": "strong support", "entry_mode": "passive"},
-        ])
+        mock_response = _llm_response(
+            [
+                {
+                    "strike": 450.0,
+                    "type": "call",
+                    "entry_price": 22.50,
+                    "rationale": "strong support",
+                    "entry_mode": "passive",
+                },
+            ]
+        )
         with patch("aegis.agents.options_strategist_s2_agent.LLMClient") as mock_llm_cls:
             mock_llm = AsyncMock()
             mock_llm.chat = AsyncMock(return_value=mock_response)
             mock_llm_cls.return_value = mock_llm
 
-            agent = OptionsStrategistS2Agent(memory=mock_memory, tools=mock_tools, config=mock_config)
+            agent = OptionsStrategistS2Agent(
+                memory=mock_memory, tools=mock_tools, config=mock_config
+            )
             state = PipelineState(
                 tickers=["QQQ"],
-                options_step1={"QQQ": {"candidates": [{"strike": 450.0, "type": "call", "dte": 400, "delta": 0.6, "iv": 0.25, "bid": 22.0, "ask": 23.0}]}},
-                debate_results={"QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "strong momentum"}},
-                analyst_outputs={"levels": {"QQQ": {"support_levels": [400.0], "resistance_levels": [480.0]}}},
+                options_step1={
+                    "QQQ": {
+                        "candidates": [
+                            {
+                                "strike": 450.0,
+                                "type": "call",
+                                "dte": 400,
+                                "delta": 0.6,
+                                "iv": 0.25,
+                                "bid": 22.0,
+                                "ask": 23.0,
+                            }
+                        ]
+                    }
+                },
+                debate_results={
+                    "QQQ": {
+                        "direction": "bullish",
+                        "confidence": 0.85,
+                        "rationale": "strong momentum",
+                    }
+                },
+                analyst_outputs={
+                    "levels": {"QQQ": {"support_levels": [400.0], "resistance_levels": [480.0]}}
+                },
             )
             result = await agent.run(state)
             output = result.options_step2["QQQ"]
@@ -65,20 +98,48 @@ class TestOptionsStrategistS2:
         self, mock_memory: Any, mock_tools: Any, mock_config: Any
     ) -> None:
         """Should use fixed_pct stop_loss when no support levels available."""
-        mock_response = _llm_response([
-            {"strike": 450.0, "type": "call", "entry_price": 22.50, "rationale": "momentum play", "entry_mode": "passive"},
-        ])
+        mock_response = _llm_response(
+            [
+                {
+                    "strike": 450.0,
+                    "type": "call",
+                    "entry_price": 22.50,
+                    "rationale": "momentum play",
+                    "entry_mode": "passive",
+                },
+            ]
+        )
         with patch("aegis.agents.options_strategist_s2_agent.LLMClient") as mock_llm_cls:
             mock_llm = AsyncMock()
             mock_llm.chat = AsyncMock(return_value=mock_response)
             mock_llm_cls.return_value = mock_llm
 
-            agent = OptionsStrategistS2Agent(memory=mock_memory, tools=mock_tools, config=mock_config)
+            agent = OptionsStrategistS2Agent(
+                memory=mock_memory, tools=mock_tools, config=mock_config
+            )
             state = PipelineState(
                 tickers=["QQQ"],
-                options_step1={"QQQ": {"candidates": [{"strike": 450.0, "type": "call", "dte": 400, "delta": 0.6, "iv": 0.25, "bid": 22.0, "ask": 23.0}]}},
-                debate_results={"QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "momentum"}},
-                analyst_outputs={"levels": {"QQQ": {"support_levels": [], "resistance_levels": []}}},
+                options_step1={
+                    "QQQ": {
+                        "candidates": [
+                            {
+                                "strike": 450.0,
+                                "type": "call",
+                                "dte": 400,
+                                "delta": 0.6,
+                                "iv": 0.25,
+                                "bid": 22.0,
+                                "ask": 23.0,
+                            }
+                        ]
+                    }
+                },
+                debate_results={
+                    "QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "momentum"}
+                },
+                analyst_outputs={
+                    "levels": {"QQQ": {"support_levels": [], "resistance_levels": []}}
+                },
             )
             result = await agent.run(state)
             c = result.options_step2["QQQ"]["contracts"][0]
@@ -94,7 +155,9 @@ class TestOptionsStrategistS2:
             mock_llm.chat = AsyncMock()
             mock_llm_cls.return_value = mock_llm
 
-            agent = OptionsStrategistS2Agent(memory=mock_memory, tools=mock_tools, config=mock_config)
+            agent = OptionsStrategistS2Agent(
+                memory=mock_memory, tools=mock_tools, config=mock_config
+            )
             state = PipelineState(
                 tickers=["QQQ"],
                 options_step1={"QQQ": {"candidates": []}},
@@ -113,14 +176,34 @@ class TestOptionsStrategistS2:
         """Should write error_flags on JSON parse failure, not crash."""
         with patch("aegis.agents.options_strategist_s2_agent.LLMClient") as mock_llm_cls:
             mock_llm = AsyncMock()
-            mock_llm.chat = AsyncMock(return_value={"content": "not valid json", "usage": {}, "model": "gpt-4o"})
+            mock_llm.chat = AsyncMock(
+                return_value={"content": "not valid json", "usage": {}, "model": "gpt-4o"}
+            )
             mock_llm_cls.return_value = mock_llm
 
-            agent = OptionsStrategistS2Agent(memory=mock_memory, tools=mock_tools, config=mock_config)
+            agent = OptionsStrategistS2Agent(
+                memory=mock_memory, tools=mock_tools, config=mock_config
+            )
             state = PipelineState(
                 tickers=["QQQ"],
-                options_step1={"QQQ": {"candidates": [{"strike": 450.0, "type": "call", "dte": 400, "delta": 0.6, "iv": 0.25, "bid": 22.0, "ask": 23.0}]}},
-                debate_results={"QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "test"}},
+                options_step1={
+                    "QQQ": {
+                        "candidates": [
+                            {
+                                "strike": 450.0,
+                                "type": "call",
+                                "dte": 400,
+                                "delta": 0.6,
+                                "iv": 0.25,
+                                "bid": 22.0,
+                                "ask": 23.0,
+                            }
+                        ]
+                    }
+                },
+                debate_results={
+                    "QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "test"}
+                },
                 analyst_outputs={},
             )
             result = await agent.run(state)
@@ -137,11 +220,29 @@ class TestOptionsStrategistS2:
             mock_llm.chat = AsyncMock(side_effect=RuntimeError("API timeout"))
             mock_llm_cls.return_value = mock_llm
 
-            agent = OptionsStrategistS2Agent(memory=mock_memory, tools=mock_tools, config=mock_config)
+            agent = OptionsStrategistS2Agent(
+                memory=mock_memory, tools=mock_tools, config=mock_config
+            )
             state = PipelineState(
                 tickers=["QQQ"],
-                options_step1={"QQQ": {"candidates": [{"strike": 450.0, "type": "call", "dte": 400, "delta": 0.6, "iv": 0.25, "bid": 22.0, "ask": 23.0}]}},
-                debate_results={"QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "test"}},
+                options_step1={
+                    "QQQ": {
+                        "candidates": [
+                            {
+                                "strike": 450.0,
+                                "type": "call",
+                                "dte": 400,
+                                "delta": 0.6,
+                                "iv": 0.25,
+                                "bid": 22.0,
+                                "ask": 23.0,
+                            }
+                        ]
+                    }
+                },
+                debate_results={
+                    "QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "test"}
+                },
                 analyst_outputs={},
             )
             result = await agent.run(state)
@@ -153,20 +254,48 @@ class TestOptionsStrategistS2:
         self, mock_memory: Any, mock_tools: Any, mock_config: Any
     ) -> None:
         """Should write s2_raw metadata to extensions."""
-        mock_response = _llm_response([
-            {"strike": 450.0, "type": "call", "entry_price": 22.50, "rationale": "test", "entry_mode": "passive"},
-        ])
+        mock_response = _llm_response(
+            [
+                {
+                    "strike": 450.0,
+                    "type": "call",
+                    "entry_price": 22.50,
+                    "rationale": "test",
+                    "entry_mode": "passive",
+                },
+            ]
+        )
         with patch("aegis.agents.options_strategist_s2_agent.LLMClient") as mock_llm_cls:
             mock_llm = AsyncMock()
             mock_llm.chat = AsyncMock(return_value=mock_response)
             mock_llm_cls.return_value = mock_llm
 
-            agent = OptionsStrategistS2Agent(memory=mock_memory, tools=mock_tools, config=mock_config)
+            agent = OptionsStrategistS2Agent(
+                memory=mock_memory, tools=mock_tools, config=mock_config
+            )
             state = PipelineState(
                 tickers=["QQQ"],
-                options_step1={"QQQ": {"candidates": [{"strike": 450.0, "type": "call", "dte": 400, "delta": 0.6, "iv": 0.25, "bid": 22.0, "ask": 23.0}]}},
-                debate_results={"QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "test"}},
-                analyst_outputs={"levels": {"QQQ": {"support_levels": [400.0], "resistance_levels": []}}},
+                options_step1={
+                    "QQQ": {
+                        "candidates": [
+                            {
+                                "strike": 450.0,
+                                "type": "call",
+                                "dte": 400,
+                                "delta": 0.6,
+                                "iv": 0.25,
+                                "bid": 22.0,
+                                "ask": 23.0,
+                            }
+                        ]
+                    }
+                },
+                debate_results={
+                    "QQQ": {"direction": "bullish", "confidence": 0.85, "rationale": "test"}
+                },
+                analyst_outputs={
+                    "levels": {"QQQ": {"support_levels": [400.0], "resistance_levels": []}}
+                },
             )
             result = await agent.run(state)
             assert "options_strategist_s2" in result.extensions
@@ -174,11 +303,11 @@ class TestOptionsStrategistS2:
             assert "s2_raw" in ext
             assert ext["s2_raw"]["contracts_count"] == 1
 
-    def test_manifest_compliance(
-        self, mock_memory: Any, mock_tools: Any, mock_config: Any
-    ) -> None:
+    def test_manifest_compliance(self, mock_memory: Any, mock_tools: Any, mock_config: Any) -> None:
         with patch("aegis.agents.options_strategist_s2_agent.LLMClient"):
-            agent = OptionsStrategistS2Agent(memory=mock_memory, tools=mock_tools, config=mock_config)
+            agent = OptionsStrategistS2Agent(
+                memory=mock_memory, tools=mock_tools, config=mock_config
+            )
         m = agent.manifest
         assert m.name == "options_strategist_s2"
         assert m.llm_dependency is True

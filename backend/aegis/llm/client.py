@@ -1,4 +1,5 @@
 """Frozen at M1 v1.0. Changes require owner review."""
+
 from typing import Any
 
 from openai import AsyncOpenAI

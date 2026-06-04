@@ -1,4 +1,5 @@
 """Test LevelAnalystAgent — support/resistance + GEX + edge cases."""
+
 from __future__ import annotations
 
 import json
@@ -101,9 +102,7 @@ class TestLevelAnalyst:
         assert output["gex_signal"] == "neutral"
 
     @pytest.mark.asyncio
-    async def test_empty_market_data(
-        self, agent: LevelAnalystAgent
-    ) -> None:
+    async def test_empty_market_data(self, agent: LevelAnalystAgent) -> None:
         """Empty market_data should write error_flag, not crash."""
         state = PipelineState(tickers=["QQQ"], market_data={})
         result = await agent.run(state)

@@ -1,4 +1,5 @@
 """Test BaseTool + ToolResult contract."""
+
 from aegis.tools.base import ToolResult
 
 

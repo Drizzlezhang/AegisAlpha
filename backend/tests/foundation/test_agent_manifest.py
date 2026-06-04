@@ -1,4 +1,5 @@
 """Test AgentManifest contract — field completeness and constraints."""
+
 import pytest
 from pydantic import ValidationError
 

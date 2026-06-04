@@ -2,6 +2,7 @@
 
 Skeleton implementation — Branch B will complete the logic.
 """
+
 from __future__ import annotations
 
 import time

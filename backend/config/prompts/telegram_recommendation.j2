@@ -1,0 +1,10 @@
+{# Frozen at M1 v1.0. #}
+{% if rec.action in ("buy", "add") %}📊 新建仓推荐
+{% elif rec.action in ("sell", "close", "reduce") %}⚙️ 持仓操作
+{% else %}ℹ️ 持仓建议
+{% endif %}
+
+{{ rec.ticker }} — {{ rec.action | upper }} {{ rec.strategy }}
+理由: {{ rec.rationale }}
+紧急度: {{ rec.urgency }} | 评分: {{ rec.score }}/100
+Delta $: {{ "%.0f" | format(rec.delta_dollars_delta) }}

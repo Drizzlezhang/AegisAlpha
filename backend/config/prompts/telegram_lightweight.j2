@@ -1,0 +1,13 @@
+{# Frozen at M1 v1.0. #}
+🔍 Lightweight 巡检
+
+{% for ticker, score in health_scores.items() %}
+{{ ticker }}: 健康分 {{ "%.1f" | format(score) }}/100
+{% endfor %}
+
+{% if alerts %}
+⚠️ 预警:
+{% for alert in alerts %}
+- {{ alert.ticker }}: {{ alert.type }} ({{ "%.1f%%" | format(alert.pct_change * 100) }})
+{% endfor %}
+{% endif %}

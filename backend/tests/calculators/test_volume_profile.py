@@ -8,13 +8,15 @@ from aegis.calculators.volume_profile import compute_volume_profile
 
 def _make_ohlcv(prices: list[float], volumes: list[float]) -> pd.DataFrame:
     """Helper to create OHLCV DataFrame."""
-    return pd.DataFrame({
-        "open": prices,
-        "high": [p * 1.02 for p in prices],
-        "low": [p * 0.98 for p in prices],
-        "close": prices,
-        "volume": volumes,
-    })
+    return pd.DataFrame(
+        {
+            "open": prices,
+            "high": [p * 1.02 for p in prices],
+            "low": [p * 0.98 for p in prices],
+            "close": prices,
+            "volume": volumes,
+        }
+    )
 
 
 def test_volume_profile_basic():
@@ -93,13 +95,15 @@ def test_volume_profile_missing_columns():
 
 def test_volume_profile_single_price():
     """All prices identical → single bin profile."""
-    df = pd.DataFrame({
-        "open": [100.0] * 20,
-        "high": [100.0] * 20,
-        "low": [100.0] * 20,
-        "close": [100.0] * 20,
-        "volume": [1000] * 20,
-    })
+    df = pd.DataFrame(
+        {
+            "open": [100.0] * 20,
+            "high": [100.0] * 20,
+            "low": [100.0] * 20,
+            "close": [100.0] * 20,
+            "volume": [1000] * 20,
+        }
+    )
 
     result = compute_volume_profile(df, bins=20)
 

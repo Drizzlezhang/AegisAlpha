@@ -1,4 +1,5 @@
 """Test OptionsStrategistS1Agent — screening + empty chain + edge cases."""
+
 from __future__ import annotations
 
 import json
@@ -66,9 +67,7 @@ class TestOptionsStrategistS1:
             assert contract.delta > 0
 
     @pytest.mark.asyncio
-    async def test_empty_option_chain(
-        self, agent: OptionsStrategistS1Agent
-    ) -> None:
+    async def test_empty_option_chain(self, agent: OptionsStrategistS1Agent) -> None:
         """Empty option chain should return empty dict, not crash."""
         state = PipelineState(
             tickers=["QQQ"],
@@ -78,9 +77,7 @@ class TestOptionsStrategistS1:
         assert result.options_step1["QQQ"] == {}
 
     @pytest.mark.asyncio
-    async def test_no_option_chain_key(
-        self, agent: OptionsStrategistS1Agent
-    ) -> None:
+    async def test_no_option_chain_key(self, agent: OptionsStrategistS1Agent) -> None:
         """Missing option_chain key should return empty dict."""
         state = PipelineState(
             tickers=["QQQ"],
@@ -90,9 +87,7 @@ class TestOptionsStrategistS1:
         assert result.options_step1["QQQ"] == {}
 
     @pytest.mark.asyncio
-    async def test_dte_filter(
-        self, agent: OptionsStrategistS1Agent
-    ) -> None:
+    async def test_dte_filter(self, agent: OptionsStrategistS1Agent) -> None:
         """Contracts with DTE < 365 should be filtered out."""
         chain = [
             {

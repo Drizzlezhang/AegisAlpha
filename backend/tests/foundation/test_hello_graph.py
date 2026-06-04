@@ -1,4 +1,5 @@
 """Test hello-world graph — verify state flows through graph."""
+
 import pytest
 
 from aegis.pipeline.graph import build_hello_graph

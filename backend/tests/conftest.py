@@ -1,4 +1,5 @@
 """Global test fixtures for Aegis 2.0."""
+
 from typing import Any
 from unittest.mock import AsyncMock
 

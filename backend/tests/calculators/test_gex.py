@@ -15,12 +15,14 @@ def _make_chain(
     """Helper to create options chain DataFrame."""
     if types is None:
         types = ["call"] * len(strikes)
-    return pd.DataFrame({
-        "strike": strikes,
-        "option_type": types,
-        "gamma": gammas,
-        "open_interest": ois,
-    })
+    return pd.DataFrame(
+        {
+            "strike": strikes,
+            "option_type": types,
+            "gamma": gammas,
+            "open_interest": ois,
+        }
+    )
 
 
 def test_gex_basic():
@@ -81,12 +83,14 @@ def test_gex_max_pain():
 
 def test_gex_max_pain_mixed_calls_puts():
     """Max Pain aggregates call + put OI at each strike."""
-    df = pd.DataFrame({
-        "strike": [400.0, 400.0, 410.0, 410.0],
-        "option_type": ["call", "put", "call", "put"],
-        "gamma": [0.002, 0.002, 0.003, 0.003],
-        "open_interest": [10000, 8000, 12000, 15000],
-    })
+    df = pd.DataFrame(
+        {
+            "strike": [400.0, 400.0, 410.0, 410.0],
+            "option_type": ["call", "put", "call", "put"],
+            "gamma": [0.002, 0.002, 0.003, 0.003],
+            "open_interest": [10000, 8000, 12000, 15000],
+        }
+    )
     spot = 405.0
 
     result = compute_gex(df, spot)

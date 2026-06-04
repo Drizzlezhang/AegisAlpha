@@ -1,4 +1,5 @@
 """Logging configuration using loguru."""
+
 import sys
 
 from loguru import logger
@@ -13,10 +14,7 @@ def setup_logging() -> None:
         "<level>{message}</level>"
     )
     logger.add(sys.stderr, format=fmt_stderr, level="INFO", colorize=True)
-    fmt_file = (
-        "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | "
-        "{name}:{function}:{line} - {message}"
-    )
+    fmt_file = "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}"
     logger.add(
         "data/logs/aegis_{time:YYYY-MM-DD}.log",
         rotation="10 MB",

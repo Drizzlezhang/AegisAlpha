@@ -3,8 +3,6 @@
 import asyncio
 import time
 
-import pytest
-
 from aegis.tools.rate_limiter import AsyncTokenBucket
 
 

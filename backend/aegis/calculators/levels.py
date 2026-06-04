@@ -2,6 +2,7 @@
 
 No LLM, no IO, no side effects.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -89,16 +90,12 @@ def find_support_resistance(ohlcv: dict[str, list[float]]) -> dict[str, Any]:
     resistance_clusters.sort(key=lambda x: x["touches"], reverse=True)
 
     # Build key_levels with strength scores
-    max_touches = max(
-        [c["touches"] for c in support_clusters + resistance_clusters] or [1]
-    )
+    max_touches = max([c["touches"] for c in support_clusters + resistance_clusters] or [1])
 
     key_levels: list[dict[str, Any]] = []
     for c in support_clusters[:5]:
         strength = min(100, int(c["touches"] / max_touches * 100))
-        key_levels.append(
-            {"price": round(c["price"], 2), "type": "support", "strength": strength}
-        )
+        key_levels.append({"price": round(c["price"], 2), "type": "support", "strength": strength})
     for c in resistance_clusters[:5]:
         strength = min(100, int(c["touches"] / max_touches * 100))
         key_levels.append(
@@ -108,12 +105,8 @@ def find_support_resistance(ohlcv: dict[str, list[float]]) -> dict[str, Any]:
     # Sort key_levels by price ascending
     key_levels.sort(key=lambda x: x["price"])
 
-    support_levels = sorted(
-        [round(c["price"], 2) for c in support_clusters[:5]]
-    )
-    resistance_levels = sorted(
-        [round(c["price"], 2) for c in resistance_clusters[:5]]
-    )
+    support_levels = sorted([round(c["price"], 2) for c in support_clusters[:5]])
+    resistance_levels = sorted([round(c["price"], 2) for c in resistance_clusters[:5]])
 
     return {
         "support_levels": support_levels,

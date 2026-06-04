@@ -1,6 +1,6 @@
 """Test ToolRegistry — loading, get, find_by_tag, fallback, circuit_breaker."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 

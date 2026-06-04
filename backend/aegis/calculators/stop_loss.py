@@ -39,9 +39,7 @@ def compute_stop_loss(
 
     if mode == "support_based":
         if support_level is None:
-            raise ValueError(
-                "support_level is required for support_based stop loss mode"
-            )
+            raise ValueError("support_level is required for support_based stop loss mode")
         stop_price = support_level * (1 - SUPPORT_BUFFER)
         stop_pct = (entry_price - stop_price) / entry_price
         return StopLossResult(

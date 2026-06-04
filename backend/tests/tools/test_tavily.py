@@ -47,11 +47,19 @@ class TestTavilyAdapter:
     @pytest.mark.asyncio
     async def test_fetch_success(self, adapter: TavilyAdapter) -> None:
         """Should return search results on success."""
-        response = _make_mock_response(200, {
-            "results": [
-                {"title": "QQQ Earnings", "url": "https://example.com", "content": "...", "score": 0.9},
-            ]
-        })
+        response = _make_mock_response(
+            200,
+            {
+                "results": [
+                    {
+                        "title": "QQQ Earnings",
+                        "url": "https://example.com",
+                        "content": "...",
+                        "score": 0.9,
+                    },
+                ]
+            },
+        )
         mock_client = _mock_async_client(response)
 
         with (

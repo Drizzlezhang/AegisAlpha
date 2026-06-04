@@ -80,6 +80,17 @@ agents:
     pipeline_mode: full
     enabled: true
 
+  debate_agent:
+    name: debate_agent
+    version: "0.1.0"
+    requires: [analyst_outputs]
+    provides: [debate_results, extensions.debate_agent]
+    tags: [debate, bull, bear, judge]
+    llm_dependency: true
+    parallel_group: null
+    pipeline_mode: full
+    enabled: true
+
   risk_gate:
     name: risk_gate
     version: "0.1.0"

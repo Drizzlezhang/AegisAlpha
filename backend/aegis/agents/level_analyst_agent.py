@@ -2,12 +2,13 @@
 
 Pure calculation, no LLM dependency. Writes to analyst_outputs and extensions.
 """
+
 from __future__ import annotations
 
 from typing import Any, ClassVar
 
 from aegis.agents.base import BaseAgent
-from aegis.calculators.gex import analyze_gex
+from aegis.calculators.gex import compute_gex
 from aegis.calculators.levels import compute_volume_profile, find_support_resistance
 from aegis.pipeline.state import PipelineState
 from aegis.registry.agent_registry import AgentManifest
@@ -48,7 +49,19 @@ class LevelAnalystAgent(BaseAgent):
                 gex_data = state.market_data.get(ticker, {}).get("gex")
                 if gex_data and isinstance(gex_data, dict):
                     try:
-                        gex_result = analyze_gex(gex_data)
+                        import pandas as pd
+
+                        spot = ohlcv.get("close", [0])[-1] if ohlcv.get("close") else 0
+                        df = pd.DataFrame(gex_data.get("chain", []))
+                        if not df.empty:
+                            computed = compute_gex(df, spot)
+                            gex_result = {
+                                "gamma_flip_level": computed.gamma_flip,
+                                "key_strikes": list(computed.gex_by_strike.keys()),
+                                "net_gex_signal": "bullish"
+                                if computed.total_gex > 0
+                                else "bearish",
+                            }
                     except Exception:
                         gex_result = {
                             "gamma_flip_level": None,

@@ -3,6 +3,7 @@
 Input: state.options_step1, state.debate_results, state.analyst_outputs.levels
 Output: state.options_step2[ticker] with contracts, stop_loss, delta_dollars_delta
 """
+
 from __future__ import annotations
 
 import json
@@ -50,11 +51,13 @@ class OptionsStrategistS2Agent(BaseAgent):
             try:
                 await self._process_ticker(state, ticker)
             except Exception as e:
-                state.error_flags.append({
-                    "agent": self.name,
-                    "ticker": ticker,
-                    "error": str(e),
-                })
+                state.error_flags.append(
+                    {
+                        "agent": self.name,
+                        "ticker": ticker,
+                        "error": str(e),
+                    }
+                )
         return state
 
     async def _process_ticker(self, state: PipelineState, ticker: str) -> None:
@@ -89,11 +92,13 @@ class OptionsStrategistS2Agent(BaseAgent):
         try:
             result = json.loads(response["content"])
         except (json.JSONDecodeError, KeyError):
-            state.error_flags.append({
-                "agent": self.name,
-                "ticker": ticker,
-                "error": "Failed to parse LLM JSON response",
-            })
+            state.error_flags.append(
+                {
+                    "agent": self.name,
+                    "ticker": ticker,
+                    "error": "Failed to parse LLM JSON response",
+                }
+            )
             state.options_step2[ticker] = {}
             return
 
@@ -116,8 +121,12 @@ class OptionsStrategistS2Agent(BaseAgent):
             "contracts": contracts,
         }
 
-        self.write_extension(state, "s2_raw", {
-            "ticker": ticker,
-            "contracts_count": len(contracts),
-            "stop_loss_mode": "support_based" if support_levels else "fixed_pct",
-        })
+        self.write_extension(
+            state,
+            "s2_raw",
+            {
+                "ticker": ticker,
+                "contracts_count": len(contracts),
+                "stop_loss_mode": "support_based" if support_levels else "fixed_pct",
+            },
+        )

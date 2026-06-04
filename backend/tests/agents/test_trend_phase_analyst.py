@@ -1,4 +1,5 @@
 """Test TrendPhaseAnalystAgent — bullish/bearish/sideways + edge cases."""
+
 from __future__ import annotations
 
 import json
@@ -50,7 +51,11 @@ class TestTrendPhaseAnalyst:
         assert output["trend_direction"] == "bullish"
         assert output["trend_score"] > 50
         assert output["wyckoff_phase"] in (
-            "accumulation", "markup", "distribution", "markdown", "unknown"
+            "accumulation",
+            "markup",
+            "distribution",
+            "markdown",
+            "unknown",
         )
         assert 0 <= output["confidence"] <= 1
 
@@ -69,9 +74,7 @@ class TestTrendPhaseAnalyst:
         assert output["trend_score"] < 50
 
     @pytest.mark.asyncio
-    async def test_sideways_trend_detection(
-        self, agent: TrendPhaseAnalystAgent
-    ) -> None:
+    async def test_sideways_trend_detection(self, agent: TrendPhaseAnalystAgent) -> None:
         """Flat OHLCV should produce sideways trend_direction."""
         n = 60
         flat_price = 400.0
@@ -92,9 +95,7 @@ class TestTrendPhaseAnalyst:
         assert output["trend_direction"] in ("sideways", "bearish", "bullish")
 
     @pytest.mark.asyncio
-    async def test_empty_market_data(
-        self, agent: TrendPhaseAnalystAgent
-    ) -> None:
+    async def test_empty_market_data(self, agent: TrendPhaseAnalystAgent) -> None:
         """Empty market_data should write error_flag, not crash."""
         state = PipelineState(tickers=["QQQ"], market_data={})
         result = await agent.run(state)
@@ -102,9 +103,7 @@ class TestTrendPhaseAnalyst:
         assert result.error_flags[0]["agent"] == "trend_phase_analyst"
 
     @pytest.mark.asyncio
-    async def test_insufficient_ohlcv_data(
-        self, agent: TrendPhaseAnalystAgent
-    ) -> None:
+    async def test_insufficient_ohlcv_data(self, agent: TrendPhaseAnalystAgent) -> None:
         """OHLCV with < 2 data points should write error_flag."""
         ohlcv = {"open": [400.0], "high": [401.0], "low": [399.0], "close": [400.0]}
         state = PipelineState(

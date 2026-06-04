@@ -1,4 +1,5 @@
 """Frozen at M1 v1.2. Changes require owner review."""
+
 from abc import ABC, abstractmethod
 from typing import Any, ClassVar
 
@@ -17,8 +18,7 @@ class BaseAgent(ABC):
         self.config = config
 
     @abstractmethod
-    async def run(self, state: PipelineState) -> PipelineState:
-        ...
+    async def run(self, state: PipelineState) -> PipelineState: ...
 
     def write_extension(self, state: PipelineState, key: str, value: Any) -> None:
         """将自定义产出写入 state.extensions[agent_name][key]。"""

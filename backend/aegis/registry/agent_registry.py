@@ -1,4 +1,5 @@
 """Frozen at M1 v1.2. Changes require owner review."""
+
 from typing import Literal
 
 from pydantic import BaseModel

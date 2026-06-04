@@ -1,6 +1,6 @@
 """Test PortfolioOrchestratorAgent — entry_mode 分流, health_score, edge cases."""
+
 import json
-import os
 import tempfile
 from typing import Any
 
@@ -339,9 +339,7 @@ class TestPortfolioOrchestratorAgent:
         assert "quantity" in result.positions["QQQ"]
 
     @pytest.mark.asyncio
-    async def test_cc_entry_mode_goes_to_active(
-        self, mock_memory: Any, mock_tools: Any
-    ) -> None:
+    async def test_cc_entry_mode_goes_to_active(self, mock_memory: Any, mock_tools: Any) -> None:
         """CC entry_mode should be classified as active."""
         data = {
             "positions": [

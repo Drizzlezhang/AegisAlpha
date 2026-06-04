@@ -2,6 +2,7 @@
 
 Pure calculation, no LLM dependency. Writes to options_step1 and extensions.
 """
+
 from __future__ import annotations
 
 from typing import Any, ClassVar
@@ -48,7 +49,25 @@ class OptionsStrategistS1Agent(BaseAgent):
                     continue
 
                 # Compute Greeks for all contracts
-                with_greeks = compute_greeks(chain)
+                with_greeks: list[dict[str, Any]] = []
+                for c in chain:
+                    try:
+                        greeks = compute_greeks(
+                            option_type=c.get("type", "call"),
+                            S=c.get("spot_price", 0.0),
+                            K=c.get("strike", 0.0),
+                            T=c.get("dte", 365) / 365.0,
+                            r=0.05,
+                            sigma=c.get("iv", 0.2),
+                        )
+                        c["delta"] = greeks.delta
+                        c["gamma"] = greeks.gamma
+                        c["theta"] = greeks.theta
+                        c["vega"] = greeks.vega
+                        c["rho"] = greeks.rho
+                    except Exception:
+                        pass
+                    with_greeks.append(c)
 
                 # Apply screening filters
                 filtered = self._apply_filters(with_greeks)
@@ -59,11 +78,15 @@ class OptionsStrategistS1Agent(BaseAgent):
                     "total_passed": len(filtered),
                 }
 
-                self.write_extension(state, "screening_raw", {
-                    "total": len(chain),
-                    "passed": len(filtered),
-                    "filters_applied": self._get_filter_config(),
-                })
+                self.write_extension(
+                    state,
+                    "screening_raw",
+                    {
+                        "total": len(chain),
+                        "passed": len(filtered),
+                        "filters_applied": self._get_filter_config(),
+                    },
+                )
 
             except Exception as e:
                 self._flag_error(state, ticker, str(e))

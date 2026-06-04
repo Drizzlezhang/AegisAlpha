@@ -34,9 +34,7 @@ def test_stop_loss_fixed_pct_small_price():
 
 def test_stop_loss_support_based_standard():
     """Support-based stop: 2% below support level."""
-    result = compute_stop_loss(
-        entry_price=100.0, mode="support_based", support_level=95.0
-    )
+    result = compute_stop_loss(entry_price=100.0, mode="support_based", support_level=95.0)
 
     assert result.stop_price == 93.10  # 95 * 0.98
     assert result.stop_pct == pytest.approx(0.069, rel=1e-3)
@@ -45,9 +43,7 @@ def test_stop_loss_support_based_standard():
 
 def test_stop_loss_support_based_tight():
     """Support-based stop with support close to entry."""
-    result = compute_stop_loss(
-        entry_price=100.0, mode="support_based", support_level=98.0
-    )
+    result = compute_stop_loss(entry_price=100.0, mode="support_based", support_level=98.0)
 
     assert result.stop_price == 96.04  # 98 * 0.98
     assert result.stop_pct == pytest.approx(0.0396, rel=1e-3)

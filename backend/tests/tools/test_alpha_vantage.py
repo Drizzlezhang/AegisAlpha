@@ -49,10 +49,13 @@ class TestAlphaVantageAdapter:
     @pytest.mark.asyncio
     async def test_fetch_success(self, adapter: AlphaVantageAdapter) -> None:
         """Should return data on successful API call."""
-        response = _make_mock_response(200, {
-            "Meta Data": {"1. Information": "Daily Prices"},
-            "Time Series (Daily)": {"2024-06-03": {"1. open": "450.0", "4. close": "453.0"}},
-        })
+        response = _make_mock_response(
+            200,
+            {
+                "Meta Data": {"1. Information": "Daily Prices"},
+                "Time Series (Daily)": {"2024-06-03": {"1. open": "450.0", "4. close": "453.0"}},
+            },
+        )
         mock_client = _mock_async_client(response)
 
         with (
