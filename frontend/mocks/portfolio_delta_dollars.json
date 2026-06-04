@@ -1,0 +1,5 @@
+[
+  { "ticker": "QQQ", "delta_dollars": 125000, "pct_of_nav": 43.5 },
+  { "ticker": "SPY", "delta_dollars": 42000, "pct_of_nav": 14.6 },
+  { "ticker": "GLD", "delta_dollars": 17200, "pct_of_nav": 6.0 }
+]

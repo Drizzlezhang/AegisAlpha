@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "ticker": "QQQ",
+    "action": "buy",
+    "direction": "bullish",
+    "strategy": "LEAPS Call",
+    "entry_mode": "active_left",
+    "rationale": "QQQ approaching $475 support with bullish Wyckoff accumulation phase.",
+    "score": 8.2,
+    "urgency": "high",
+    "risk_gate_status": "passed",
+    "created_at": "2026-06-04T08:00:00Z"
+  },
+  {
+    "id": 2,
+    "ticker": "SPY",
+    "action": "hold",
+    "direction": "neutral",
+    "strategy": "Covered Call",
+    "entry_mode": "cc",
+    "rationale": "SPY in consolidation range. Covered Call opportunity if resistance holds.",
+    "score": 5.5,
+    "urgency": "medium",
+    "risk_gate_status": "passed",
+    "created_at": "2026-06-04T08:00:00Z"
+  },
+  {
+    "id": 3,
+    "ticker": "GLD",
+    "action": "buy",
+    "direction": "bullish",
+    "strategy": "LEAPS Call",
+    "entry_mode": "active_right",
+    "rationale": "Gold breaking out. Trend following entry confirmed.",
+    "score": 7.8,
+    "urgency": "medium",
+    "risk_gate_status": "passed",
+    "created_at": "2026-06-04T08:00:00Z"
+  }
+]

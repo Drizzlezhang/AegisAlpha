@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "ticker": "QQQ",
+    "type": "price_alert",
+    "params": { "condition": "below", "level": 470 },
+    "suggested_action": "Review QQQ LEAPS position",
+    "valid_until": "2026-06-11T20:00:00Z",
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "ticker": "SPY",
+    "type": "iv_spike",
+    "params": { "condition": "above", "level": 35 },
+    "suggested_action": "Evaluate Covered Call opportunity",
+    "valid_until": "2026-06-18T20:00:00Z",
+    "status": "pending"
+  },
+  {
+    "id": 3,
+    "ticker": "GLD",
+    "type": "price_alert",
+    "params": { "condition": "above", "level": 2450 },
+    "suggested_action": "Take profit on 50% of GLD LEAPS",
+    "valid_until": "2026-06-25T20:00:00Z",
+    "status": "triggered"
+  }
+]

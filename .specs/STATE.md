@@ -1,10 +1,10 @@
 # AegisAlpha — DevKit State
 
 ## Active Change
-- **change_id**: m2-sprint0-foundation
-- **current_stage**: 5-VERIFY
+- **change_id**: impl-m2-frontend
+- **current_stage**: 6-SHIP
 - **status**: in_progress
-- **updated_at**: 2026-06-04T16:35:00+08:00
+- **updated_at**: 2026-06-04T18:38:00+08:00
 
 ## Change History
 - m2-sprint0-foundation | 2026-06-04 | 0-CHANGE | M2 Sprint-0 基础建设 — PipelineState v1.3 + FastAPI + graph_builder + Memory

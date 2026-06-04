@@ -1,0 +1,13 @@
+{
+  "ticker": "QQQ",
+  "direction_bias": "bullish",
+  "smart_money_score": 78,
+  "unusual_options": [
+    { "strike": 500, "expiry": "2026-09-18", "option_type": "call", "premium": 2850000, "oi_change": 3500, "volume": 5200 },
+    { "strike": 480, "expiry": "2026-12-18", "option_type": "call", "premium": 1800000, "oi_change": 2100, "volume": 3800 },
+    { "strike": 510, "expiry": "2027-01-15", "option_type": "call", "premium": 1500000, "oi_change": 1800, "volume": 2900 },
+    { "strike": 460, "expiry": "2026-08-21", "option_type": "put", "premium": 620000, "oi_change": -800, "volume": 1200 },
+    { "strike": 520, "expiry": "2027-03-19", "option_type": "call", "premium": 980000, "oi_change": 1200, "volume": 1800 }
+  ],
+  "narrative": "Institutional call buying concentrated at $480-$510 strikes. Directional bias strongly bullish with 72% of unusual activity on call side. Smart money score of 78 indicates high conviction bullish positioning."
+}
