@@ -1,0 +1,22 @@
+{
+  "description": "VIX spike scenario for Risk Gate testing",
+  "market_data": {
+    "QQQ": {
+      "vix": 35.0,
+      "vix_daily_change_pct": 0.05,
+      "price": 420.0
+    }
+  },
+  "macro_data": {
+    "fomc_meeting": null,
+    "next_earnings": {}
+  },
+  "positions": {
+    "total_nav": 100000.0,
+    "cash": 50000.0,
+    "total_position_pct": 0.50,
+    "holdings": [
+      {"ticker": "QQQ", "shares": 100, "avg_cost": 400.0}
+    ]
+  }
+}
