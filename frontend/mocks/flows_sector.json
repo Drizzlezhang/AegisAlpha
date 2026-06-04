@@ -1,0 +1,10 @@
+[
+  { "sector": "Technology", "flow_7d": 4200000000, "intensity": 0.85 },
+  { "sector": "Consumer Discretionary", "flow_7d": 1800000000, "intensity": 0.55 },
+  { "sector": "Healthcare", "flow_7d": 950000000, "intensity": 0.30 },
+  { "sector": "Financials", "flow_7d": -450000000, "intensity": -0.20 },
+  { "sector": "Energy", "flow_7d": -1200000000, "intensity": -0.55 },
+  { "sector": "Utilities", "flow_7d": 280000000, "intensity": 0.10 },
+  { "sector": "Real Estate", "flow_7d": -850000000, "intensity": -0.40 },
+  { "sector": "Materials", "flow_7d": 150000000, "intensity": 0.05 }
+]

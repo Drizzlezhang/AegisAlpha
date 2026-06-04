@@ -1,0 +1,5 @@
+[
+  { "ticker": "QQQ", "score": 85, "alerts": [] },
+  { "ticker": "SPY", "score": 72, "alerts": ["IV percentile elevated"] },
+  { "ticker": "GLD", "score": 90, "alerts": [] }
+]

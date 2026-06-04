@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* ─── Aegis Design Tokens ─── */
+:root {
+  /* 背景层级 */
+  --aegis-bg-base: hsl(220, 20%, 8%);
+  --aegis-bg-surface: hsl(220, 15%, 12%);
+  --aegis-bg-elevated: hsl(220, 12%, 16%);
+  --aegis-bg-overlay: hsl(220, 15%, 10%);
+
+  /* 边框 */
+  --aegis-border-default: hsl(220, 15%, 20%);
+  --aegis-border-subtle: hsl(220, 12%, 16%);
+  --aegis-border-focus: hsl(210, 100%, 56%);
+
+  /* 文字 */
+  --aegis-text-primary: hsl(0, 0%, 92%);
+  --aegis-text-secondary: hsl(0, 0%, 60%);
+  --aegis-text-tertiary: hsl(0, 0%, 42%);
+  --aegis-text-disabled: hsl(0, 0%, 30%);
+
+  /* 品牌色 */
+  --aegis-brand: hsl(210, 100%, 56%);
+  --aegis-brand-hover: hsl(210, 100%, 62%);
+  --aegis-brand-muted: hsl(210, 60%, 25%);
+
+  /* 信号色 */
+  --aegis-signal-bull: hsl(145, 65%, 50%);
+  --aegis-signal-bull-bg: hsl(145, 40%, 12%);
+  --aegis-signal-bear: hsl(0, 75%, 60%);
+  --aegis-signal-bear-bg: hsl(0, 50%, 12%);
+  --aegis-signal-neutral: hsl(45, 80%, 55%);
+  --aegis-signal-neutral-bg: hsl(45, 50%, 12%);
+  --aegis-signal-blocked: hsl(280, 50%, 60%);
+  --aegis-signal-blocked-bg: hsl(280, 30%, 12%);
+
+  /* 语义色 */
+  --aegis-success: hsl(145, 65%, 50%);
+  --aegis-warning: hsl(45, 80%, 55%);
+  --aegis-error: hsl(0, 75%, 60%);
+  --aegis-info: hsl(210, 100%, 56%);
+
+  /* 排版 */
+  --aegis-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --aegis-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+}
+
+/* ─── shadcn/ui theme override (dark) ─── */
+@layer base {
+  [data-theme="dark"] {
+    --background: 220 20% 8%;
+    --foreground: 0 0% 92%;
+    --card: 220 15% 12%;
+    --card-foreground: 0 0% 92%;
+    --popover: 220 12% 16%;
+    --popover-foreground: 0 0% 92%;
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 0 0% 92%;
+    --muted: 220 12% 16%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 220 12% 16%;
+    --accent-foreground: 0 0% 92%;
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 210 100% 56%;
+    --radius: 0.5rem;
+  }
+}
+
+/* ─── Base styles ─── */
+body {
+  background: var(--aegis-bg-base);
+  color: var(--aegis-text-primary);
+  font-family: var(--aegis-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--aegis-bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--aegis-border-default);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--aegis-text-tertiary);
+}
+
+/* ─── Tabular numbers for data ─── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

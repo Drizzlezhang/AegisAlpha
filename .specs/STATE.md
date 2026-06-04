@@ -7,6 +7,7 @@
 - **updated_at**: 2026-06-04T18:15:00+08:00
 
 ## Change History
+- impl-m2-frontend | 2026-06-04 | 6-SHIP | M2 Branch D — Next.js SPA frontend (completed)
 - m2-broker-integration | 2026-06-04 | 0-CHANGE | M2 Branch C — 多账户券商对接 (Futu/Longbridge/Tiger)
 - m2-sprint0-foundation | 2026-06-04 | 6-SHIP | M2 Sprint-0 基础建设 (completed)
 - m1-post-review-fix | 2026-06-04 | 6-SHIP | M1 post-review hotfix — Python 3.13 + pipeline 拓扑 + yfinance 补全 (completed)

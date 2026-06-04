@@ -1,0 +1,6 @@
+[
+  { "ticker": "SPY", "name": "SPDR S&P 500", "flow_7d": 2850000000, "flow_30d": 12500000000, "flow_pct": 0.52 },
+  { "ticker": "QQQ", "name": "Invesco QQQ Trust", "flow_7d": 1800000000, "flow_30d": 8200000000, "flow_pct": 0.68 },
+  { "ticker": "GLD", "name": "SPDR Gold Trust", "flow_7d": 950000000, "flow_30d": 4200000000, "flow_pct": 0.71 },
+  { "ticker": "SLV", "name": "iShares Silver Trust", "flow_7d": 320000000, "flow_30d": 1500000000, "flow_pct": 0.45 }
+]

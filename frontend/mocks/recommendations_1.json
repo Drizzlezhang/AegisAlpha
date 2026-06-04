@@ -1,0 +1,89 @@
+{
+  "id": 1,
+  "ticker": "QQQ",
+  "action": "buy",
+  "direction": "bullish",
+  "strategy": "LEAPS Call",
+  "entry_mode": "active_left",
+  "rationale": "QQQ approaching $475 support with bullish Wyckoff accumulation phase. Smart money showing call buying at $480-$500 strikes. Fund flows positive across tech sector ETFs.",
+  "score": 8.2,
+  "urgency": "high",
+  "risk_gate_status": "passed",
+  "created_at": "2026-06-04T08:00:00Z",
+  "strategy_comparisons": [
+    {
+      "strategy_name": "LEAPS Call (Jun 2027 $500)",
+      "cost": 2850,
+      "max_profit": 12000,
+      "max_loss": 2850,
+      "delta": 0.72,
+      "gamma": 0.008,
+      "theta": -0.15,
+      "vega": 0.85,
+      "scenario": "Best for bullish conviction with 12+ month horizon"
+    },
+    {
+      "strategy_name": "Diagonal Call Spread",
+      "cost": 1800,
+      "max_profit": 6200,
+      "max_loss": 1800,
+      "delta": 0.45,
+      "gamma": 0.005,
+      "theta": -0.08,
+      "vega": 0.52,
+      "scenario": "Moderate bullish, lower cost basis"
+    },
+    {
+      "strategy_name": "Bull Put Spread",
+      "cost": 1200,
+      "max_profit": 3800,
+      "max_loss": 6200,
+      "delta": 0.35,
+      "gamma": 0.003,
+      "theta": 0.12,
+      "vega": -0.30,
+      "scenario": "Neutral to slightly bullish, theta positive"
+    }
+  ],
+  "scenario_pnls": [
+    {
+      "scenario": "target",
+      "days": [0, 30, 60, 90, 180, 365],
+      "pnl_values": [0, 1200, 2800, 4500, 7800, 12000]
+    },
+    {
+      "scenario": "sideways",
+      "days": [0, 30, 60, 90, 180, 365],
+      "pnl_values": [0, -200, -450, -700, -1200, -1800]
+    },
+    {
+      "scenario": "stop_loss",
+      "days": [0, 30, 60, 90, 180, 365],
+      "pnl_values": [0, -800, -1500, -2200, -2850, -2850]
+    }
+  ],
+  "smart_money": {
+    "direction_bias": "bullish",
+    "top_unusual": [
+      { "strike": 500, "expiry": "2026-09-18", "option_type": "call", "premium": 2850000, "oi_change": 3500, "volume": 5200 },
+      { "strike": 480, "expiry": "2026-12-18", "option_type": "call", "premium": 1800000, "oi_change": 2100, "volume": 3800 },
+      { "strike": 510, "expiry": "2027-01-15", "option_type": "call", "premium": 1500000, "oi_change": 1800, "volume": 2900 }
+    ],
+    "narrative": "Institutional call buying concentrated at $480-$510 strikes for Q4 2026 - Q1 2027 expirations. Directional bias strongly bullish with 72% of unusual activity on call side."
+  },
+  "fund_flow": {
+    "macro_liquidity": "ON RRP declining, TGA stable, net liquidity positive",
+    "credit_appetite": "HYG/LQD spread tightening, risk-on sentiment",
+    "sector_rotation": "Technology and Consumer Discretionary seeing strongest inflows",
+    "narrative": "Macro liquidity environment supportive for risk assets. Tech sector ETF flows positive for 4 consecutive weeks."
+  },
+  "debate": {
+    "bull": "Strong support at $475, accumulation phase confirmed, smart money call buying, positive fund flows",
+    "bear": "VIX elevated, FOMC meeting in 2 weeks, QQQ RSI approaching overbought on daily"
+  },
+  "stop_loss": {
+    "type": "support_based",
+    "level": 465.0,
+    "description": "Below key support at $470 (previous swing low). If QQQ closes below $470, exit position."
+  }
+}
