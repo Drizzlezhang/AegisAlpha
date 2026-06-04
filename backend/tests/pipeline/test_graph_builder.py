@@ -40,18 +40,19 @@ class TestGraphBuilder:
         }
         ordered = _topological_sort(agents)
 
-        # M1 hardcoded order: data_harvester → portfolio_orchestrator → trend_phase_analyst
-        # → level_analyst → options_strategist_s1 → debate_agent → options_strategist_s2
-        # → research_manager → risk_gate
+        # M2 order: data_harvester → portfolio_orchestrator → trend_phase_analyst
+        # → level_analyst → options_strategist_s1 → smart_money_agent → debate_agent
+        # → options_strategist_s2 → research_manager → risk_gate
         assert ordered[0] == "data_harvester"
         assert ordered[1] == "portfolio_orchestrator"
         assert ordered[2] == "trend_phase_analyst"
         assert ordered[3] == "level_analyst"
         assert ordered[4] == "options_strategist_s1"
-        assert ordered[5] == "debate_agent"
-        assert ordered[6] == "options_strategist_s2"
-        assert ordered[7] == "research_manager"
-        assert ordered[8] == "risk_gate"
+        assert ordered[5] == "smart_money_agent"
+        assert ordered[6] == "debate_agent"
+        assert ordered[7] == "options_strategist_s2"
+        assert ordered[8] == "research_manager"
+        assert ordered[9] == "risk_gate"
 
     def test_lightweight_only_no_llm_agents(self):
         """Lightweight pipeline should exclude llm_dependency agents."""
