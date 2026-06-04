@@ -72,6 +72,32 @@ class ScenarioPnL(BaseModel):
     stop_loss: dict[str, float] = {}    # {price, pnl, pnl_pct}
 
 
+class OptionPlan(BaseModel):
+    """M2 v1.3: Multi-strategy option plan with scenario P&L."""
+    plan_no: int
+    strategy: str  # leaps_call | diagonal | vertical | cc
+    strike: float
+    expiry: str
+    dte: int
+    option_type: str
+    delta: float
+    gamma: float
+    theta: float
+    vega: float
+    iv: float
+    estimated_cost: float
+    max_profit: float | None = None
+    max_loss: float | None = None
+    pros: list[str] = []
+    cons: list[str] = []
+    scenario_pnl: ScenarioPnL | None = None
+    liquidity_score: float | None = None
+    entry_mode: str = "passive"
+    batch_no: int | None = None
+    batch_trigger_price: float | None = None
+    stop_loss_plan: dict[str, Any] | None = None
+
+
 class StopLossPlan(BaseModel):
     """Structured stop-loss plan."""
     mode: Literal["support_based", "fixed_pct"]
