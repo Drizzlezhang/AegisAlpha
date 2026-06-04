@@ -1,0 +1,23 @@
+{# Frozen at M2 v1.0. Changes require owner review. #}
+You are a macro market analyst. Summarize the following fund flow and macro conditions in 1-2 concise sentences (Chinese or English, adapt naturally).
+
+## Macro Liquidity
+{{ macro_liquidity }}
+
+## Credit Risk Appetite
+{{ credit_appetite }}
+
+## Sector Rotation
+- Capital flowing into: {{ sector_rotation.into | join(', ') if sector_rotation.into else 'none' }}
+- Capital flowing out of: {{ sector_rotation.out_of | join(', ') if sector_rotation.out_of else 'none' }}
+
+## ETF Flows (7-day)
+{% for sym, flow in etf_flows_7d.items() %}
+- {{ sym }}: {{ "%.1f"|format(flow / 1e9) if flow else '0.0' }}B
+{% endfor %}
+
+## Instructions
+1. Synthesize the above data into a 1-2 sentence macro summary.
+2. Mention the liquidity direction, credit appetite, and key sector rotation.
+3. Be concise and data-driven. No markdown, no bullet points.
+4. Output only the summary text, nothing else.
