@@ -26,8 +26,7 @@ async def run_full(ticker: str, mode: PipelineMode = "manual") -> PipelineState:
         tickers=[ticker],
         pipeline_mode="full",
     )
-    graph = build_full_graph()
-    app = graph.compile()
+    app = build_full_graph()
     t0 = time.monotonic()
     result = await app.ainvoke(state)
     elapsed = time.monotonic() - t0
@@ -65,8 +64,7 @@ async def run_lightweight(tickers_passive: list[str]) -> PipelineState:
         pipeline_mode="lightweight",
         tickers_holdings_passive=tickers_passive,
     )
-    graph = build_lightweight_graph()
-    app = graph.compile()
+    app = build_lightweight_graph()
     t0 = time.monotonic()
     result = await app.ainvoke(state)
     elapsed = time.monotonic() - t0

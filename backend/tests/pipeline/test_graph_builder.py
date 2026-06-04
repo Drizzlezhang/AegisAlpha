@@ -23,14 +23,13 @@ class TestGraphBuilder:
         graph = gb.build("lightweight")
         assert graph is not None
 
-    def test_full_graph_has_all_9_agents(self):
-        """Full pipeline should include all 9 M1 agents."""
+    def test_full_graph_has_all_agents(self):
+        """Full pipeline should include all agents (some in composite nodes)."""
         gb = GraphBuilder()
         graph = gb.build("full")
-        # Compiled graph has nodes dict
         nodes = list(graph.nodes.keys()) if hasattr(graph, "nodes") else []
-        # Should have at least the 9 agents + __start__ + __end__
-        assert len(nodes) >= 9
+        # 7 groups (2 singleton + 1 composite of 5 + 4 singleton) + __start__ + __end__
+        assert len(nodes) >= 7
 
     def test_full_order_matches_m1_hardcoded(self):
         """Topological sort should match M2 graph_full.py order."""
@@ -253,17 +252,14 @@ class TestStateReducers:
 
 
 class TestGraphBuilderParallel:
-    def test_full_graph_has_parallel_groups(self):
-        """Full pipeline graph should include parallel signal layer."""
+    def test_full_graph_has_parallel_composite_node(self):
+        """Full pipeline graph should include a composite node for signal layer."""
         gb = GraphBuilder()
         graph = gb.build("full")
         nodes = list(graph.nodes.keys()) if hasattr(graph, "nodes") else []
-        # Signal layer agents should all be present
-        signal_agents = {
-            "trend_phase_analyst", "level_analyst",
-            "options_strategist_s1", "smart_money_agent", "fund_flow_agent",
-        }
-        assert signal_agents.issubset(set(nodes))
+        # Should have a composite parallel node for signal_analysts group
+        parallel_nodes = [n for n in nodes if n.startswith("parallel_")]
+        assert len(parallel_nodes) >= 1
 
     def test_lightweight_graph_excludes_llm_agents(self):
         """Lightweight pipeline should not include LLM-dependent agents."""
@@ -282,10 +278,14 @@ class TestGraphBuilderParallel:
         gb = GraphBuilder()
         graph = gb.build("lightweight")
         nodes = list(graph.nodes.keys()) if hasattr(graph, "nodes") else []
+        # data_harvester, portfolio_orchestrator, trend_phase_analyst,
+        # level_analyst (in composite), passive_health_check
         assert "data_harvester" in nodes
         assert "portfolio_orchestrator" in nodes
-        assert "trend_phase_analyst" in nodes
-        assert "level_analyst" in nodes
+        # trend_phase_analyst and level_analyst are in a composite node
+        parallel_nodes = [n for n in nodes if n.startswith("parallel_")]
+        assert len(parallel_nodes) >= 1
+        assert "passive_health_check" in nodes
 
     def test_full_graph_entry_point_is_data_harvester(self):
         """Entry point should be data_harvester."""

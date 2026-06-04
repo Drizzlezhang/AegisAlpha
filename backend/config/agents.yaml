@@ -123,3 +123,14 @@ agents:
     parallel_group: signal_analysts
     pipeline_mode: full
     enabled: true
+
+  passive_health_check:
+    name: passive_health_check
+    version: "0.1.0"
+    requires: [tickers_holdings_passive, positions, market_data, entry_mode]
+    provides: [passive_health_alerts, health_scores, extensions.passive_health_check]
+    tags: [passive, health, rule_only]
+    llm_dependency: false
+    parallel_group: null
+    pipeline_mode: lightweight
+    enabled: true

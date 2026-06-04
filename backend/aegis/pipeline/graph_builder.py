@@ -1,14 +1,15 @@
 """Manifest-driven dynamic graph assembly for M2+.
 
 Reads agents.yaml, filters by pipeline_mode, derives dependency order,
-groups agents by parallel_group for fan-out/fan-in, and assembles a
-compiled StateGraph with Annotated state reducers for parallel writes.
+groups agents by parallel_group for concurrent execution via asyncio.gather,
+and assembles a compiled StateGraph.
 
-M2 Branch E+F: parallel fan-out/fan-in for signal layer agents.
+M2 Branch E+F: parallel execution for signal layer agents via composite nodes.
 """
 
 from __future__ import annotations
 
+import asyncio
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -17,7 +18,6 @@ from typing import Any
 import yaml
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-from langgraph.types import Send
 from loguru import logger
 
 from aegis.pipeline.state import PipelineState
@@ -43,7 +43,6 @@ def _topological_sort(
     """
     agent_names = list(agents.keys())
 
-    # Compute dependency depth via BFS
     def depth(name: str, visited: set[str] | None = None) -> int:
         if visited is None:
             visited = set()
@@ -59,7 +58,6 @@ def _topological_sort(
                 max_d = max(max_d, depth(provider, visited) + 1)
         return max_d
 
-    # Sort by depth ascending
     sorted_names = sorted(agent_names, key=lambda n: depth(n))
     return sorted_names
 
@@ -85,7 +83,7 @@ def _group_by_parallel(
     """Group topologically sorted agents by parallel_group.
 
     Consecutive agents sharing the same parallel_group are grouped together
-    for fan-out/fan-in. Agents without a parallel_group are singleton groups.
+    for concurrent execution. Agents without a parallel_group are singleton groups.
     """
     groups: list[list[str]] = []
     current_group: list[str] = []
@@ -96,17 +94,14 @@ def _group_by_parallel(
         pg = agent.get("parallel_group") or None
 
         if pg is None:
-            # Singleton: flush current group, add as solo
             if current_group:
                 groups.append(current_group)
                 current_group = []
                 current_pg = None
             groups.append([name])
         elif pg == current_pg:
-            # Same parallel group, continue
             current_group.append(name)
         else:
-            # New parallel group: flush old, start new
             if current_group:
                 groups.append(current_group)
             current_group = [name]
@@ -119,12 +114,12 @@ def _group_by_parallel(
 
 
 class GraphBuilder:
-    """Manifest-driven dynamic graph assembly with parallel fan-out/fan-in.
+    """Manifest-driven dynamic graph assembly with parallel execution.
 
-    Reads agents.yaml, groups agents by parallel_group, and uses LangGraph
-    Send-based fan-out for parallel execution. Annotated state reducers
-    (merge_dicts, merge_lists) handle conflict-free parallel writes to
-    extensions, error_flags, and agent_timings.
+    Reads agents.yaml, groups agents by parallel_group, and uses
+    asyncio.gather within composite nodes for concurrent execution.
+    Annotated state reducers (merge_dicts, merge_lists) handle
+    conflict-free parallel writes to extensions, error_flags, and agent_timings.
     """
 
     def __init__(self, agents_yaml_path: str | None = None) -> None:
@@ -139,12 +134,11 @@ class GraphBuilder:
             pipeline_mode: "full" or "lightweight"
 
         Returns:
-            Compiled StateGraph with parallel fan-out/fan-in for signal layer.
+            Compiled StateGraph with parallel execution for signal layer.
         """
         config = _load_agents_yaml()
         all_agents: dict[str, dict[str, Any]] = config.get("agents", {})
 
-        # Filter by pipeline_mode
         if pipeline_mode == "lightweight":
             filtered = {
                 name: agent
@@ -164,67 +158,74 @@ class GraphBuilder:
             logger.warning(f"No agents found for pipeline_mode={pipeline_mode}")
             return StateGraph(PipelineState).compile()
 
-        # Topological sort
         ordered = _topological_sort(filtered)
         logger.info(f"GraphBuilder: {pipeline_mode} order = {ordered}")
 
-        # Group by parallel_group for fan-out/fan-in
         groups = _group_by_parallel(ordered, filtered)
-        logger.info(f"GraphBuilder: {pipeline_mode} groups = {[[g] if len(g)==1 else g for g in groups]}")
+        logger.info(
+            f"GraphBuilder: {pipeline_mode} groups = "
+            f"{[[g] if len(g)==1 else g for g in groups]}"
+        )
 
-        # Build graph
         graph = StateGraph(PipelineState)
 
-        # Add all nodes
-        for agent_name in ordered:
-            graph.add_node(agent_name, self._make_node(agent_name))  # type: ignore[call-overload]
-
-        # Set entry point (first agent in first group)
-        graph.set_entry_point(groups[0][0])
-
-        # Add edges with parallel fan-out/fan-in
-        for i, group in enumerate(groups):
-            is_last = (i == len(groups) - 1)
-
-            if is_last:
-                # Last group → END
-                for name in group:
-                    graph.add_edge(name, END)
+        # Add nodes: singleton agents get individual nodes,
+        # parallel groups get composite nodes
+        node_names: list[str] = []
+        for group in groups:
+            if len(group) == 1:
+                name = group[0]
+                graph.add_node(name, self._make_node(name))  # type: ignore[call-overload]
+                node_names.append(name)
             else:
-                next_group = groups[i + 1]
-                next_first = next_group[0]
+                # Composite node for parallel group
+                composite_name = f"parallel_{group[0]}"
+                graph.add_node(composite_name, self._make_composite_node(group))  # type: ignore[call-overload]
+                node_names.append(composite_name)
 
-                if len(group) == 1 and len(next_group) == 1:
-                    # Sequential: single → single
-                    graph.add_edge(group[0], next_group[0])
-                elif len(group) == 1 and len(next_group) > 1:
-                    # Fan-out: single → parallel group (using Send)
-                    graph.add_conditional_edges(
-                        group[0],
-                        self._fan_out(next_group),
-                        {name: name for name in next_group},
-                    )
-                elif len(group) > 1 and len(next_group) == 1:
-                    # Fan-in: parallel group → single
-                    for name in group:
-                        graph.add_edge(name, next_group[0])
-                else:
-                    # Parallel → parallel: fan-in then fan-out
-                    # Use a synthetic join node? For now, fan-in to next_group[0]
-                    # then fan-out from there. But this shouldn't happen in practice.
-                    for name in group:
-                        graph.add_edge(name, next_group[0])
+        # Sequential edges between groups
+        graph.set_entry_point(node_names[0])
+        for i in range(len(node_names) - 1):
+            graph.add_edge(node_names[i], node_names[i + 1])
+        graph.add_edge(node_names[-1], END)
 
         return graph.compile()
 
-    @staticmethod
-    def _fan_out(targets: list[str]) -> Callable[[PipelineState], list[Send]]:
-        """Create a fan-out router that sends state to all target agents in parallel."""
+    def _make_composite_node(
+        self, agent_names: list[str]
+    ) -> Callable[[PipelineState], Any]:
+        """Create a node that runs multiple agents concurrently via asyncio.gather."""
 
-        def router(state: PipelineState) -> list[Send]:
-            return [Send(target, state.model_dump()) for target in targets]
+        async def composite_fn(state: PipelineState) -> dict[str, Any]:
+            async def run_one(name: str) -> None:
+                node_fn = self._make_node(name)
+                await node_fn(state)
 
-        return router
+            t0 = time.monotonic()
+            results = await asyncio.gather(
+                *[run_one(name) for name in agent_names],
+                return_exceptions=True,
+            )
+            elapsed = time.monotonic() - t0
+
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.error(
+                        f"[{agent_names[i]}] parallel failed: {result}"
+                    )
+                    state.error_flags.append(
+                        {"agent": agent_names[i], "error": str(result)}
+                    )
+
+            state.agent_timings[f"parallel_group"] = elapsed
+
+            return {
+                "extensions": state.extensions,
+                "error_flags": state.error_flags,
+                "agent_timings": state.agent_timings,
+            }
+
+        return composite_fn
 
     def _make_node(self, agent_name: str) -> Callable[[PipelineState], Any]:
         """Create a LangGraph node function for an agent."""
@@ -232,8 +233,11 @@ class GraphBuilder:
         async def node_fn(state: PipelineState) -> dict[str, Any]:
             import importlib
 
-            # Map agent name to module path (convention: aegis.agents.{name}_agent)
-            module_name = f"aegis.agents.{agent_name}_agent"
+            # Map agent name to module path
+            if agent_name.endswith("_agent"):
+                module_name = f"aegis.agents.{agent_name}"
+            else:
+                module_name = f"aegis.agents.{agent_name}_agent"
             try:
                 module = importlib.import_module(module_name)
             except ImportError:
@@ -241,9 +245,13 @@ class GraphBuilder:
                 state.error_flags.append(
                     {"agent": agent_name, "error": f"Module not found: {module_name}"}
                 )
-                return dict(state.model_dump())
+                return {
+                    "extensions": state.extensions,
+                    "error_flags": state.error_flags,
+                    "agent_timings": state.agent_timings,
+                }
 
-            # Find the agent class (convention: PascalCase with Agent suffix)
+            # Find the agent class
             agent_cls = None
             for attr_name in dir(module):
                 if attr_name.endswith("Agent") and not attr_name.startswith("Base"):
@@ -257,7 +265,11 @@ class GraphBuilder:
                 state.error_flags.append(
                     {"agent": agent_name, "error": "Agent class not found"}
                 )
-                return dict(state.model_dump())
+                return {
+                    "extensions": state.extensions,
+                    "error_flags": state.error_flags,
+                    "agent_timings": state.agent_timings,
+                }
 
             agent = agent_cls(memory={}, tools={}, config={})
             t0 = time.monotonic()
@@ -269,6 +281,11 @@ class GraphBuilder:
                 result = state
             elapsed = time.monotonic() - t0
             result.agent_timings[agent_name] = elapsed
-            return dict(result.model_dump())
+
+            return {
+                "extensions": result.extensions,
+                "error_flags": result.error_flags,
+                "agent_timings": result.agent_timings,
+            }
 
         return node_fn
