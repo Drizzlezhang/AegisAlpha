@@ -13,8 +13,8 @@ rules:
     fomc_blackout_hours: 24
     earnings_blackout_hours: 48
     delta_dollars_budget_pct: 0.30
-    iv_crush_percentile_threshold: 90
-    post_close_cooldown_days: 7
+    iv_crush_block_threshold: "high"
+    cooldown_days: 30
 
   # 策略参数
   strategies:
@@ -34,3 +34,15 @@ rules:
   stop_loss:
     default_fixed_pct: 0.08
     support_based_enabled: true
+
+  # Research Manager v2
+  research_manager:
+    max_daily_recommendations: 10
+    right_side_volume_multiplier: 1.5
+    right_side_retrace_max_pct: 0.50
+    batch_entry_splits: 3
+
+  # Options Strategist v2
+  options_strategist:
+    min_plans_per_ticker: 2
+    roll_dte_threshold: 180

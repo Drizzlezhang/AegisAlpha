@@ -31,7 +31,7 @@ class TestGraphBuilder:
         assert len(nodes) >= 9
 
     def test_full_order_matches_m1_hardcoded(self):
-        """Topological sort should match M1 graph_full.py order."""
+        """Topological sort should match M2 graph_full.py order."""
         config = _load_agents_yaml()
         agents = {
             name: agent
@@ -40,19 +40,21 @@ class TestGraphBuilder:
         }
         ordered = _topological_sort(agents)
 
-        # M2 order: data_harvester → portfolio_orchestrator → trend_phase_analyst
-        # → level_analyst → options_strategist_s1 → smart_money_agent → debate_agent
+        # M2 order: data_harvester → portfolio_orchestrator → signal_analysts
+        # (fund_flow, trend_phase, level, options_s1, smart_money) → debate
         # → options_strategist_s2 → research_manager → risk_gate
         assert ordered[0] == "data_harvester"
         assert ordered[1] == "portfolio_orchestrator"
-        assert ordered[2] == "trend_phase_analyst"
-        assert ordered[3] == "level_analyst"
-        assert ordered[4] == "options_strategist_s1"
-        assert ordered[5] == "smart_money_agent"
-        assert ordered[6] == "debate_agent"
-        assert ordered[7] == "options_strategist_s2"
-        assert ordered[8] == "research_manager"
-        assert ordered[9] == "risk_gate"
+        # Signal layer (order within parallel group may vary)
+        signal_agents = set(ordered[2:7])
+        assert signal_agents == {
+            "fund_flow_agent", "trend_phase_analyst", "level_analyst",
+            "options_strategist_s1", "smart_money_agent",
+        }
+        assert ordered[7] == "debate_agent"
+        assert ordered[8] == "options_strategist_s2"
+        assert ordered[9] == "research_manager"
+        assert ordered[10] == "risk_gate"
 
     def test_lightweight_only_no_llm_agents(self):
         """Lightweight pipeline should exclude llm_dependency agents."""

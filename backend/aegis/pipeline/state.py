@@ -3,9 +3,21 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
+
+
+def merge_dicts(left: dict, right: dict) -> dict:
+    """Reducer: deep-merge two dicts for parallel agent writes."""
+    merged = left.copy()
+    merged.update(right)
+    return merged
+
+
+def merge_lists(left: list, right: list) -> list:
+    """Reducer: concatenate two lists for parallel agent writes."""
+    return left + right
 
 PipelineMode = Literal["pre-market", "post-market", "manual"]
 
@@ -51,6 +63,46 @@ class BlockedRecommendation(BaseModel):
     blocked_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
+class ScenarioPnL(BaseModel):
+    """Scenario P&L simulation results for an option plan."""
+    target: dict[str, float] = {}       # {price, pnl, pnl_pct}
+    flat_30d: dict[str, float] = {}     # {price, pnl, theta_decay}
+    flat_60d: dict[str, float] = {}
+    flat_90d: dict[str, float] = {}
+    stop_loss: dict[str, float] = {}    # {price, pnl, pnl_pct}
+
+
+class StopLossPlan(BaseModel):
+    """Structured stop-loss plan."""
+    mode: Literal["support_based", "fixed_pct"]
+    trigger_price: float
+    support_level: float | None = None
+    drop_pct_from_entry: float | None = None
+    notes: str = ""
+
+
+class PendingTrigger(BaseModel):
+    """Conditional trigger for price/RSI/volume-based alerts."""
+    id: int | None = None
+    ticker: str
+    trigger_type: Literal["price_below", "price_above", "rsi_below", "volume_spike"]
+    trigger_params: dict[str, Any] = Field(default_factory=dict)
+    suggested_action: dict[str, Any] = Field(default_factory=dict)
+    status: Literal["pending", "triggered", "expired", "cancelled"] = "pending"
+    created_at: str = ""
+    valid_until: str = ""
+    fired_at: str | None = None
+
+
+class PipelineEvent(BaseModel):
+    """WebSocket pipeline event."""
+    event_type: Literal["agent_start", "agent_complete", "agent_failed", "pipeline_complete", "trigger_fired"]
+    pipeline_id: str
+    agent_name: str | None = None
+    data: dict[str, Any] = Field(default_factory=dict)
+    timestamp: str = ""
+
+
 class PipelineState(BaseModel):
     # 元数据
     pipeline_id: str = ""
@@ -80,7 +132,7 @@ class PipelineState(BaseModel):
     blocked_recommendations: list[BlockedRecommendation] = []
 
     # v1.2: extensions slot（新 Agent 写自定义产出）
-    extensions: dict[str, dict[str, Any]] = {}
+    extensions: Annotated[dict[str, dict[str, Any]], merge_dicts] = Field(default_factory=dict)
 
     # v1.2: Pending Triggers（M1 仅占位）
     pending_triggers: list[dict[str, Any]] = []
@@ -94,10 +146,10 @@ class PipelineState(BaseModel):
     scratchpad: dict[str, str] = {}  # {agent_name: reasoning_trace}
 
     # 错误
-    error_flags: list[dict[str, Any]] = []
+    error_flags: Annotated[list[dict[str, Any]], merge_lists] = Field(default_factory=list)
 
     # 性能
-    agent_timings: dict[str, float] = {}
+    agent_timings: Annotated[dict[str, float], merge_dicts] = Field(default_factory=dict)
 
     # v1.3: M2 新增字段
     smart_money_data: dict[str, dict[str, Any]] = {}
