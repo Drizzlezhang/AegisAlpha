@@ -155,7 +155,8 @@ class SmartMoneyAgent(BaseAgent):
           - direction_score (0-40): abs(call_ratio - 0.5) * 80
           - premium_score (0-30): abs(premium_bias - 0.5) * 60
           - oi_score (0-30): min(abs(oi_delta) * 3, 30)
-          - total = 0.35 * direction_score + 0.35 * premium_score + 0.30 * oi_score
+          - Normalize each sub-score to 0-1, then weight to 0-100:
+            total = (0.35 * direction_norm + 0.35 * premium_norm + 0.30 * oi_norm) * 100
         """
         # 1. Direction consistency (0-40)
         call_count = sum(1 for o in unusual_options if o.get("type") == "call")
@@ -184,7 +185,12 @@ class SmartMoneyAgent(BaseAgent):
         oi_delta = oi_changes.get("oi_delta", 0)
         oi_score = min(abs(oi_delta) * 3, 30)
 
-        total_score = 0.35 * direction_score + 0.35 * premium_score + 0.30 * oi_score
+        # Normalize each sub-score to 0-1, then weight to 0-100
+        direction_norm = direction_score / 40.0 if direction_score > 0 else 0.0
+        premium_norm = premium_score / 30.0 if premium_score > 0 else 0.0
+        oi_norm = oi_score / 30.0 if oi_score > 0 else 0.0
+
+        total_score = (0.35 * direction_norm + 0.35 * premium_norm + 0.30 * oi_norm) * 100
 
         # Direction bias
         if call_ratio > 0.55:
