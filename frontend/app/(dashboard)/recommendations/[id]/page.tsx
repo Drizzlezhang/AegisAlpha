@@ -9,16 +9,8 @@ import { formatPrice } from "@/lib/utils";
 import SignalBadge from "@/components/charts/signal-badge";
 import EntryModeBadge from "@/components/charts/entry-mode-badge";
 import LoadingSkeleton from "@/components/ui/loading-skeleton";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-import { CHART_COLORS } from "@/lib/design-tokens";
+import StrategyComparisonTable from "@/components/recommendations/strategy-comparison";
+import ScenarioPnlChart from "@/components/recommendations/scenario-pnl-chart";
 
 interface DetailData extends Recommendation {
   strategy_comparisons: StrategyComparison[];
@@ -37,12 +29,6 @@ interface DetailData extends Recommendation {
   debate: { bull: string; bear: string };
   stop_loss: { type: string; level: number; description: string };
 }
-
-const SCENARIO_COLORS: Record<string, string> = {
-  target: CHART_COLORS.positive,
-  sideways: CHART_COLORS.iv,
-  stop_loss: CHART_COLORS.negative,
-};
 
 export default function RecommendationDetailPage() {
   const params = useParams();
@@ -63,15 +49,6 @@ export default function RecommendationDetailPage() {
     );
   }
   if (!data) return <div className="p-4"><LoadingSkeleton lines={6} /></div>;
-
-  // Transform scenario PnL data for Recharts
-  const chartData = data.scenario_pnls[0]?.days.map((day, i) => {
-    const point: Record<string, number | string> = { day: `D${day}` };
-    data.scenario_pnls.forEach((s) => {
-      point[s.scenario] = s.pnl_values[i];
-    });
-    return point;
-  }) || [];
 
   return (
     <div className="p-4 space-y-4">
@@ -140,90 +117,10 @@ export default function RecommendationDetailPage() {
       </div>
 
       {/* Strategy Comparison Table */}
-      <div
-        className="rounded-lg border p-4"
-        style={{ background: "var(--aegis-bg-surface)", borderColor: "var(--aegis-border-default)" }}
-      >
-        <h3 className="text-sm font-medium mb-3" style={{ color: "var(--aegis-text-primary)" }}>
-          Strategy Comparison
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs uppercase tracking-wider" style={{ background: "var(--aegis-bg-elevated)" }}>
-                <th className="text-left py-2 px-3 font-medium" style={{ color: "var(--aegis-text-tertiary)" }}>Strategy</th>
-                <th className="text-right py-2 px-3 font-medium" style={{ color: "var(--aegis-text-tertiary)" }}>Cost</th>
-                <th className="text-right py-2 px-3 font-medium" style={{ color: "var(--aegis-text-tertiary)" }}>Max Profit</th>
-                <th className="text-right py-2 px-3 font-medium" style={{ color: "var(--aegis-text-tertiary)" }}>Max Loss</th>
-                <th className="text-right py-2 px-3 font-medium" style={{ color: "var(--aegis-text-tertiary)" }}>Delta</th>
-                <th className="text-right py-2 px-3 font-medium" style={{ color: "var(--aegis-text-tertiary)" }}>Theta</th>
-                <th className="text-left py-2 px-3 font-medium" style={{ color: "var(--aegis-text-tertiary)" }}>Scenario</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.strategy_comparisons.map((s, i) => (
-                <tr key={i} className="border-t" style={{ borderColor: "var(--aegis-border-subtle)" }}>
-                  <td className="py-2 px-3 font-medium" style={{ color: "var(--aegis-text-primary)" }}>{s.strategy_name}</td>
-                  <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--aegis-text-primary)" }}>${s.cost.toLocaleString()}</td>
-                  <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--aegis-signal-bull)" }}>${s.max_profit.toLocaleString()}</td>
-                  <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--aegis-signal-bear)" }}>${s.max_loss.toLocaleString()}</td>
-                  <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--aegis-text-secondary)" }}>{s.delta.toFixed(2)}</td>
-                  <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--aegis-text-secondary)" }}>{s.theta.toFixed(2)}</td>
-                  <td className="py-2 px-3 text-xs" style={{ color: "var(--aegis-text-secondary)" }}>{s.scenario}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <StrategyComparisonTable strategies={data.strategy_comparisons} />
 
       {/* Scenario P&L Chart */}
-      <div
-        className="rounded-lg border p-4"
-        style={{ background: "var(--aegis-bg-surface)", borderColor: "var(--aegis-border-default)" }}
-      >
-        <h3 className="text-sm font-medium mb-3" style={{ color: "var(--aegis-text-primary)" }}>
-          Scenario P&L Simulation
-        </h3>
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={chartData}>
-            <XAxis
-              dataKey="day"
-              tick={{ fill: "var(--aegis-text-tertiary)", fontSize: 11 }}
-              axisLine={{ stroke: "var(--aegis-border-subtle)" }}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fill: "var(--aegis-text-tertiary)", fontSize: 11 }}
-              axisLine={{ stroke: "var(--aegis-border-subtle)" }}
-              tickLine={false}
-              tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}K`}
-            />
-            <Tooltip
-              contentStyle={{
-                background: "var(--aegis-bg-elevated)",
-                border: "1px solid var(--aegis-border-default)",
-                borderRadius: 8,
-                fontSize: 12,
-              }}
-            />
-            <Legend
-              wrapperStyle={{ fontSize: 11, color: "var(--aegis-text-secondary)" }}
-            />
-            {data.scenario_pnls.map((s) => (
-              <Line
-                key={s.scenario}
-                type="monotone"
-                dataKey={s.scenario}
-                stroke={SCENARIO_COLORS[s.scenario] || CHART_COLORS.threshold}
-                strokeWidth={2}
-                dot={false}
-                name={s.scenario.replace("_", " ")}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      <ScenarioPnlChart scenarios={data.scenario_pnls} />
 
       {/* Smart Money Block (collapsible) */}
       <div
