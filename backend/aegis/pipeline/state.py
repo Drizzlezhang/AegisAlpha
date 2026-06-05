@@ -52,7 +52,7 @@ class Recommendation(BaseModel):
     factor_scores: list[FactorScore] = []
     option_contracts: list[OptionContract] = []
     stop_loss: dict[str, Any] = {}
-    urgency: Literal["high", "medium", "low"] = "medium"
+    urgency: Literal["critical", "high", "medium", "low"] = "medium"
     score: float = 0.0
     delta_dollars_delta: float = 0.0  # v1.2: 该推荐增加的 Delta 暴露
 

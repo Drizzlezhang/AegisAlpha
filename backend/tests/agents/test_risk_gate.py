@@ -352,7 +352,7 @@ class TestFOMCBlackout:
 
 class TestEarningsBlackout:
     @pytest.mark.asyncio
-    async def test_blocks_during_earnings_blackout(self, agent: RiskGateAgent) -> None:
+    async def test_blocks_during_earnings_blackout(self, agent: RiskGateAgent, monkeypatch) -> None:
         fixture = _load_fixture("risk_gate_earnings_upcoming.json")
         rec = _make_rec(action="buy", ticker="QQQ")
         state = _make_state(
@@ -361,6 +361,22 @@ class TestEarningsBlackout:
             positions=fixture["positions"],
         )
         state.recommendations = [rec]
+
+        # Mock current time to 24h before earnings to trigger blackout
+        fake_now = datetime(2099, 1, 14, 14, 0, 0, tzinfo=UTC)
+
+        class FakeDatetime:
+            def __init__(self, fixed: datetime) -> None:
+                self._fixed = fixed
+
+            def now(self, tz: Any = None) -> datetime:
+                return self._fixed
+
+            def __getattr__(self, name: str) -> Any:
+                return getattr(datetime, name)
+
+        monkeypatch.setattr("aegis.agents.risk_gate_agent.datetime", FakeDatetime(fake_now))
+
         result = await agent.run(state)
         assert len(result.recommendations) == 0
         assert len(result.blocked_recommendations) == 1

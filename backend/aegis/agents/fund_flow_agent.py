@@ -55,7 +55,7 @@ class FundFlowAgent(BaseAgent):
     manifest = AgentManifest(
         name="fund_flow_agent",
         version="0.1.0",
-        requires=["raw_macro_data"],
+        requires=["macro_data"],
         provides=["fund_flow_data", "extensions.fund_flow_agent"],
         tags=["signal", "macro_flow"],
         llm_dependency=True,
