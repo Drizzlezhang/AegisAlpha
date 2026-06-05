@@ -275,6 +275,13 @@ class OptionsStrategistS2Agent(BaseAgent):
                 plans.append(self._build_diagonal_plan(plan_no, diag_candidate, entry_mode))
                 plan_no += 1
 
+        # Vertical spread if IV is very high (alternative to diagonal)
+        if iv_data.get("percentile", 0.0) > 0.70:
+            vert_candidate = self._pick_best_candidate(enriched, "call", prefer_otm=True)
+            if vert_candidate:
+                plans.append(self._build_vertical_plan(plan_no, vert_candidate, entry_mode))
+                plan_no += 1
+
         # Covered Call for cc mode
         if entry_mode == "cc":
             cc_candidate = self._pick_best_candidate(enriched, "call", prefer_otm=True)
@@ -393,6 +400,49 @@ class OptionsStrategistS2Agent(BaseAgent):
             cons=["Capped upside", "Assignment risk", "Not ideal in strong trends"],
             liquidity_score=0.7,
             entry_mode="cc",
+        )
+
+    @staticmethod
+    def _build_vertical_plan(plan_no: int, c: dict[str, Any], entry_mode: str) -> OptionPlan:
+        """Build a bull call vertical spread plan.
+
+        Buy near-ATM call + sell further OTM call, same expiry.
+        Max loss = net debit; Max profit = spread width - net debit.
+        """
+        entry_price = c.get("entry_price", (c.get("bid", 0.0) + c.get("ask", 0.0)) / 2.0)
+        # Short leg credit offsets ~40% of long leg cost
+        short_credit_ratio = 0.40
+        net_debit = entry_price * (1 - short_credit_ratio)
+        spread_width = c.get("strike", 0.0) * 0.05  # ~5% OTM for short leg
+
+        return OptionPlan(
+            plan_no=plan_no,
+            strategy="vertical",
+            strike=c.get("strike", 0.0),
+            expiry=c.get("expiration", ""),
+            dte=c.get("dte", 0),
+            option_type="call",
+            delta=c.get("delta", 0.0) * 0.6,  # Reduced delta from spread
+            gamma=c.get("gamma", 0.0) * 0.6,
+            theta=c.get("theta", 0.0) * 0.3,  # Theta partially offset
+            vega=c.get("vega", 0.0) * 0.6,
+            iv=c.get("iv", 0.0),
+            estimated_cost=round(net_debit * 100, 2),
+            max_profit=round(spread_width * 100, 2),
+            max_loss=round(net_debit * 100, 2),
+            pros=[
+                "Defined risk",
+                "Lower cost than naked LEAPS",
+                "Benefits from IV crush after entry",
+                "Good risk/reward ratio in high IV",
+            ],
+            cons=[
+                "Capped upside (spread width)",
+                "Time decay on long leg if slow move",
+                "Less leverage than naked LEAPS",
+            ],
+            liquidity_score=0.65,
+            entry_mode=entry_mode,
         )
 
     # ------------------------------------------------------------------
@@ -525,25 +575,28 @@ class OptionsStrategistS2Agent(BaseAgent):
                 new_plans.append(plan)
                 continue
 
-            # Batch 1: current price (original plan)
+            original_cost = plan.estimated_cost  # Record original total cost
+
+            # Batch 1: current price, 40% of total cost
             plan.batch_no = 1
             plan.batch_trigger_price = None
+            plan.estimated_cost = round(original_cost * BATCH_WEIGHTS[0], 2)
             new_plans.append(plan)
 
-            # Batch 2: at support
+            # Batch 2: at support, 40% of total cost
             b2 = plan.model_copy()
             b2.plan_no = plan.plan_no + 100  # offset to avoid collision
             b2.batch_no = 2
             b2.batch_trigger_price = support
-            b2.estimated_cost = round(plan.estimated_cost * BATCH_WEIGHTS[1] / BATCH_WEIGHTS[0], 2)
+            b2.estimated_cost = round(original_cost * BATCH_WEIGHTS[1], 2)
             new_plans.append(b2)
 
-            # Batch 3: 2% below support
+            # Batch 3: 2% below support, 20% of total cost
             b3 = plan.model_copy()
             b3.plan_no = plan.plan_no + 200
             b3.batch_no = 3
             b3.batch_trigger_price = round(support * 0.98, 2)
-            b3.estimated_cost = round(plan.estimated_cost * BATCH_WEIGHTS[2] / BATCH_WEIGHTS[0], 2)
+            b3.estimated_cost = round(original_cost * BATCH_WEIGHTS[2], 2)
             new_plans.append(b3)
 
         return new_plans
