@@ -110,7 +110,7 @@
 - read_files: []
 - write_files: []
 - verify: `git log --oneline -1`
-- status: pending
+- status: done
 
 ## 风险任务
 - **T01 (Smart Money 测试修复)**: 期望值需手动验算，确保与 `_compute_score` 算法一致
