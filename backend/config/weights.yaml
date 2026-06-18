@@ -1,0 +1,21 @@
+# Initial Factor Weights — loaded on first run
+
+factors:
+  trend_phase:
+    weight: 1.0
+    description: "Trend & Phase alignment signal"
+  support_resistance:
+    weight: 1.0
+    description: "Key support/resistance level proximity"
+  smart_money:
+    weight: 1.0
+    description: "Smart money flow & unusual options activity"
+  fund_flow:
+    weight: 1.0
+    description: "Macro fund flow & sector rotation"
+  options_iv:
+    weight: 1.0
+    description: "IV percentile & crush risk assessment"
+  debate_consensus:
+    weight: 1.0
+    description: "Bull/Bear debate outcome consensus"

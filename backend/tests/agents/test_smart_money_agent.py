@@ -54,11 +54,11 @@ class TestSmartMoneyScore:
 
         score, direction = SmartMoneyAgent._compute_score(unusual, oi)
 
-        # call_ratio = 1.0, direction_score = abs(1.0-0.5)*80 = 40
-        # premium_bias = 1.0, premium_score = abs(1.0-0.5)*60 = 30
-        # oi_score = min(5.0*3, 30) = 15
-        # total = 0.35*40 + 0.35*30 + 0.30*15 = 14 + 10.5 + 4.5 = 29.0
-        assert score == pytest.approx(29.0, rel=1e-2)
+        # call_ratio = 1.0, direction_score = abs(1.0-0.5)*80 = 40, norm = 1.0
+        # premium_bias = 1.0, premium_score = abs(1.0-0.5)*60 = 30, norm = 1.0
+        # oi_score = min(5.0*3, 30) = 15, norm = 0.5
+        # total = (0.35*1.0 + 0.35*1.0 + 0.30*0.5) * 100 = 85.0
+        assert score == pytest.approx(85.0, rel=1e-2)
         assert direction == "bullish"
 
     def test_score_bearish(self) -> None:
@@ -71,11 +71,11 @@ class TestSmartMoneyScore:
 
         score, direction = SmartMoneyAgent._compute_score(unusual, oi)
 
-        # call_ratio = 0.0, direction_score = abs(0.0-0.5)*80 = 40
-        # premium_bias = 0.0, premium_score = abs(0.0-0.5)*60 = 30
-        # oi_score = min(4.0*3, 30) = 12
-        # total = 0.35*40 + 0.35*30 + 0.30*12 = 14 + 10.5 + 3.6 = 28.1
-        assert score == pytest.approx(28.1, rel=1e-2)
+        # call_ratio = 0.0, direction_score = abs(0.0-0.5)*80 = 40, norm = 1.0
+        # premium_bias = 0.0, premium_score = abs(0.0-0.5)*60 = 30, norm = 1.0
+        # oi_score = min(4.0*3, 30) = 12, norm = 0.4
+        # total = (0.35*1.0 + 0.35*1.0 + 0.30*0.4) * 100 = 82.0
+        assert score == pytest.approx(82.0, rel=1e-2)
         assert direction == "bearish"
 
     def test_score_neutral(self) -> None:
@@ -112,11 +112,11 @@ class TestSmartMoneyScore:
 
         score, direction = SmartMoneyAgent._compute_score(unusual, oi)
 
-        # call_ratio = 1.0, direction_score = 40
-        # premium_bias = 1.0, premium_score = 30
-        # oi_score = min(20*3, 30) = 30 (capped)
-        # total = 0.35*40 + 0.35*30 + 0.30*30 = 14 + 10.5 + 9 = 33.5
-        assert score == pytest.approx(33.5, rel=1e-2)
+        # call_ratio = 1.0, direction_score = 40, norm = 1.0
+        # premium_bias = 1.0, premium_score = 30, norm = 1.0
+        # oi_score = min(20*3, 30) = 30 (capped), norm = 1.0
+        # total = (0.35*1.0 + 0.35*1.0 + 0.30*1.0) * 100 = 100.0
+        assert score == pytest.approx(100.0, rel=1e-2)
         assert direction == "bullish"
 
 

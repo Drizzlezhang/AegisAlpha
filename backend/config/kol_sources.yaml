@@ -1,0 +1,8 @@
+# KOL Sources — initial list for M3 Branch D
+# reliability_score starts at 0.5, updated by attribution service
+
+sources:
+  - name: "placeholder_analyst_1"
+    platform: "stocktwits"
+    handle: "placeholder"
+    enabled: false

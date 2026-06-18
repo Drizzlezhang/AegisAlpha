@@ -134,3 +134,43 @@ agents:
     parallel_group: null
     pipeline_mode: lightweight
     enabled: true
+
+  # ============================================================
+  # M3 新增 Agents
+  # ============================================================
+
+  universe_triage:
+    name: universe_triage
+    version: "0.1.0"
+    requires: []
+    provides: [universe_candidates]
+    tags: [scan, universe]
+    llm_dependency: false
+    parallel_group: null
+    pipeline_mode: full
+    enabled: false
+    description: "Scans ~600 tickers for breakout/reversal/anomaly signals"
+
+  kol_tracker:
+    name: kol_tracker
+    version: "0.1.0"
+    requires: [raw_market_data]
+    provides: [kol_signals, extensions.kol_tracker]
+    tags: [signal, social]
+    llm_dependency: true
+    parallel_group: signal_analysts
+    pipeline_mode: full
+    enabled: false
+    description: "Collects KOL signals from X/StockTwits/Reddit"
+
+  thesis_validator:
+    name: thesis_validator
+    version: "0.1.0"
+    requires: [ticker_analyses]
+    provides: [thesis_validation_results]
+    tags: [passive, thesis]
+    llm_dependency: true
+    parallel_group: null
+    pipeline_mode: lightweight
+    enabled: false
+    description: "Validates thesis key assumptions against current market data"

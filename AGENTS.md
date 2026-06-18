@@ -3,7 +3,7 @@
 > **作用域**：整个 Aegis 2.0 工程的全局开发规范。所有分支、所有子 Agent、所有 PR 都必须遵循。
 > **位置**：仓库根目录 `/AGENTS.md`
 > **优先级**：本文件优先于任何分支文档；如有冲突以本文件为准；如本文件需要修改，必须发起独立 PR 并由 owner 评审。
-> **版本**：v1.2（与 PRD v1.2 / tech-arch v1.2 同步；新增 Smart Money / Fund Flow / Options Strategist 升级、Agent Registry、Dual Pipeline、entry_mode、双维度反馈等约束）
+> **版本**：v1.3（与 PRD v1.2 / tech-arch v1.2 同步；M3 Sprint-0 契约升级：PipelineState v1.4、5 张新表、MemoryInterface v1.1、3 个新 Agent 注册、双维度反馈约束落地）
 
 ---
 
@@ -186,7 +186,7 @@ aegis/
 ### 4.3 MemoryInterface
 
 - 文件:`backend/aegis/memory/interface.py`
-- 5 个方法签名冻结:`read / write / search / summarize / archive_scratchpad`
+- **v1.1 (M3)**: `read` 新增 `limit=10`，`search` 新增 `collection="default"` 和 `filter=None`，`summarize` 的 `ticker` 改为 Optional 并新增 `data_type=""`，`write` 新增 `ttl_days=None`
 - v1.2 不变,长期记忆新增 `kol_post_hoc_attribution` / `judgment_vs_execution_breakdown` 由 WeightAdapter 通过现有接口写入
 
 ### 4.4 BaseTool + ToolResult
@@ -451,12 +451,12 @@ CHROMA_PERSIST_DIR=./data/chroma
 
 ### 9.1 四层访问规则
 
-| 层 | Agent 何时用 |
+| 层 | Agent 何时用 | M3 状态 |
 |---|---|
-| Working | Pipeline 内 Agent 间传递推理过程(写 Scratchpad / state.extensions) |
-| Short-term | 引用近期分析(如前次 Debate 结论、上一次 Smart Money 评分) |
-| Long-term | 因子权重历史、KOL 历史表现、统计摘要、**双维度(judgment / execution)历史分** |
-| Episodic | Thesis Cards 完整生命周期(含 entry_mode / re_entry_flagged / thesis_valid_status) |
+| Working | Pipeline 内 Agent 间传递推理过程(写 Scratchpad / state.extensions) | ✅ 已实现 |
+| Short-term | 引用近期分析(如前次 Debate 结论、上一次 Smart Money 评分) | ✅ 已实现 |
+| Long-term | 因子权重历史、KOL 历史表现、统计摘要、**双维度(judgment / execution)历史分** | 🆕 M3 新增表 `long_term_memory` |
+| Episodic | Thesis Cards 完整生命周期(含 entry_mode / re_entry_flagged / thesis_valid_status) | 🆕 M3 新增表 `thesis_cards` |
 
 ### 9.2 接口使用
 
@@ -654,7 +654,7 @@ model: sonnet
 |---|---|
 | M1 | entry_mode 字段落库 + Lightweight Pipeline 雏形 + passive 巡检 MVP |
 | M2 | Smart Money Agent + Fund Flow Agent + Options Strategist S2 升级 + 10 个新数据源接入 |
-| M3 | 双维度反馈(judgment / execution)落地 + KOL post-hoc attribution + Δ Dollars 预算执行 |
+| M3 | 双维度反馈(judgment / execution)落地 + KOL post-hoc attribution + Δ Dollars 预算执行 | **← 当前** |
 | M4 | Agent Registry 完整化 + `aegis scaffold` CLI + ReactFlow DAG 可视化 |
 
 ---
@@ -681,6 +681,17 @@ model: sonnet
 | **前端 hardcode 色值**(v1.2) | 必须走 `--aegis-*` 变量或 `design-tokens.ts`,禁止裸写 hex/hsl |
 | **前端引入非指定 UI/图标库**(v1.2) | 仅 shadcn/ui + Lucide Icons,禁止 MUI / Ant Design / FontAwesome |
 | **前端不遵循 design.md 提交**(v1.2) | 必须通过 Section 11 质量检查清单 |
+
+### M3 新增约束规则
+
+| 约束 | 说明 |
+|---|---|
+| Thesis Card 必须关联 Recommendation | 不允许手动创建无来源 Thesis |
+| judgment_score 与 execution_score 分离 | 不允许合并为单一打分 |
+| KOL 信号不直接决定推荐 | 仅作 Debate 补充论据，不能独立触发推荐 |
+| Universe 扫描结果不自动建仓 | 仅输入 Pipeline 作为候选，需走完整分析流程 |
+| WeightAdapter 观察期内只读 | 观察期内可记录打分但不更新权重 |
+| ChromaDB 向量不存敏感数据 | 不存价格/P&L/个人偏好，仅存分析摘要 |
 
 ---
 

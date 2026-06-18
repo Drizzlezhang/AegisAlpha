@@ -1,0 +1,46 @@
+# Memory System Configuration
+
+short_term:
+  default_ttl_days: 14
+  max_ttl_days: 30
+  cleanup_schedule: "daily"
+
+long_term:
+  compression_windows:
+    debate:
+      full_days: 60
+      compress_to: "summary"
+    recommendation:
+      full_days: 60
+      compress_to: "stats"
+    kol_calls:
+      full_days: 90
+      compress_to: "monthly_stats"
+    regime_judgment:
+      full_days: 30
+      compress_to: "weekly_snapshot"
+    smart_money_flow:
+      full_days: 60
+      compress_to: "summary"
+    fund_flow:
+      full_days: 60
+      compress_to: "summary"
+
+vector:
+  provider: "chromadb"
+  persist_directory: "./data/chromadb"
+  collection_prefix: "aegis_"
+  embedding_model: "text-embedding-3-small"
+  embedding_dimensions: 1536
+
+weight_adapter:
+  decay_half_life_days: 90
+  min_samples: 5
+  observation_period_days: 30
+  factors:
+    - trend_phase
+    - support_resistance
+    - smart_money
+    - fund_flow
+    - options_iv
+    - debate_consensus

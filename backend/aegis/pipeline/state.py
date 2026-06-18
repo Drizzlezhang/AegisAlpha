@@ -1,4 +1,4 @@
-"""Frozen at M2 v1.3. Changes require owner review."""
+"""Frozen at M3 v1.4. Changes require owner review."""
 
 from __future__ import annotations
 
@@ -184,3 +184,10 @@ class PipelineState(BaseModel):
     broker_positions: dict[str, list[dict[str, Any]]] = {}
     strategy_comparisons: dict[str, list[dict[str, Any]]] = {}
     scenario_pnl: dict[str, dict[str, Any]] = {}
+
+    # v1.4: M3 Sprint-0 新增字段
+    thesis_cards: dict[str, dict[str, Any]] = {}
+    kol_signals: dict[str, dict[str, Any]] = {}
+    universe_candidates: list[dict[str, Any]] = []
+    weight_snapshot: dict[str, dict[str, Any]] = {}
+    thesis_validation_results: dict[str, dict[str, Any]] = {}

@@ -1,13 +1,14 @@
 # AegisAlpha — DevKit State
 
 ## Active Change
-- **change_id**: m2-strategist-pipeline-integration
-- **current_stage**: 3-PLAN
+- **change_id**: m3-sprint-0-foundation
+- **current_stage**: 2-DESIGN
 - **status**: in_progress
-- **updated_at**: 2026-06-04T18:55:00+08:00
+- **updated_at**: 2026-06-18T10:20:00+08:00
 
 ## Change History
-- m2-strategist-pipeline-integration | 2026-06-04 | 0-CHANGE | M2 Branch E+F — Strategist/Research/Risk 升级 + Pipeline 并行化 + Lightweight + Triggers + 集成测试
+- m3-sprint-0-foundation | 2026-06-18 | 0-CHANGE | M3 Sprint-0 — 契约层升级 + DB Schema + MemoryInterface v1.1 + 配置
+- m2-strategist-pipeline-integration | 2026-06-04 | 3-PLAN | M2 Branch E+F — Strategist/Research/Risk 升级 + Pipeline 并行化 + Lightweight + Triggers + 集成测试
 - impl-m2-frontend | 2026-06-04 | 6-SHIP | M2 Branch D — Next.js SPA frontend (completed)
 - m2-broker-integration | 2026-06-04 | 6-SHIP | M2 Branch C — 多账户券商对接 (Futu/Longbridge/Tiger) (completed)
 - m2-sprint0-foundation | 2026-06-04 | 6-SHIP | M2 Sprint-0 基础建设 (completed)

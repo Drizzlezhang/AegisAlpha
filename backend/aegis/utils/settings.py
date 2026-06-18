@@ -62,6 +62,24 @@ class Settings(BaseSettings):
     # 数据库
     DATABASE_URL: str = "sqlite:///./data/aegis.db"
 
+    # ============================================================
+    # M3 新增配置
+    # ============================================================
+
+    # ChromaDB
+    CHROMA_COLLECTION_PREFIX: str = "aegis_"
+
+    # Embedding
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+
+    # Memory
+    MEMORY_COMPRESSION_ENABLED: bool = True
+    OBSERVATION_PERIOD_DAYS: int = 30
+
+    # Universe
+    UNIVERSE_SCAN_TOP_N: int = 20
+    UNIVERSE_SCAN_ENABLED: bool = False
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

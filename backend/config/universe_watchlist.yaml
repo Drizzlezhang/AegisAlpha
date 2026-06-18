@@ -1,0 +1,52 @@
+# Universe Watchlist — ~600 tickers grouped by sector
+# Updated quarterly. M3 Branch E implements scanning logic.
+
+settings:
+  scan_top_n: 20
+  scan_schedule: "weekly_saturday"
+  sector_boost_pct: 0.20
+
+sectors:
+  technology:
+    - AAPL
+    - MSFT
+    - GOOGL
+    - AMZN
+    - NVDA
+    - META
+    - TSLA
+    - AMD
+    - AVGO
+    - CRM
+
+  healthcare:
+    - UNH
+    - JNJ
+    - LLY
+    - ABBV
+    - MRK
+
+  financials:
+    - JPM
+    - BAC
+    - GS
+    - MS
+    - V
+
+  energy:
+    - XOM
+    - CVX
+    - COP
+    - SLB
+
+  etf_index:
+    - QQQ
+    - SPY
+    - IWM
+    - DIA
+    - XLF
+    - XLE
+    - XLK
+    - XLV
+    - XLP
+    - XLI
