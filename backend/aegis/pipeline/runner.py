@@ -7,7 +7,28 @@ import time
 import uuid
 from typing import Any
 
+from loguru import logger
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
+from aegis.memory.weight_store import WeightStore
 from aegis.pipeline.state import PipelineMode, PipelineState
+from aegis.utils.settings import settings
+
+
+def _inject_weight_snapshot() -> dict[str, dict[str, Any]]:
+    """Load current factor weights from DB and return as weight_snapshot dict.
+
+    Returns empty dict on failure — must not block Pipeline.
+    """
+    try:
+        engine = create_engine(settings.DATABASE_URL)
+        with Session(engine) as session:
+            store = WeightStore()
+            return store.get_all_weights(session)
+    except Exception:
+        logger.exception("Failed to inject weight_snapshot, using empty dict")
+        return {}
 
 
 async def run_full(
@@ -33,6 +54,10 @@ async def run_full(
         tickers=[ticker],
         pipeline_mode="full",
     )
+
+    # Inject current factor weights into state before graph execution
+    state.weight_snapshot = _inject_weight_snapshot()
+
     builder = GraphBuilder(ws_manager=ws_manager)
     app = builder.build("full")
     t0 = time.monotonic()

@@ -26,3 +26,13 @@ schedules:
     cron: "0 * * * *"  # 每小时
     timezone: "US/Eastern"
     enabled: false  # M2 启用
+
+  weight_adapter:
+    observation_check:
+      cron: "0 1 * * *"  # 每日凌晨 1:00 ET
+      timezone: "US/Eastern"
+      enabled: true
+    weight_update:
+      cron: "0 4 * * 0"  # 每周日凌晨 4:00 ET
+      timezone: "US/Eastern"
+      enabled: true

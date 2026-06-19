@@ -27,6 +27,7 @@ dependencies = [
     "alpha-vantage>=3.0.0",
     "fredapi>=0.5.2",
     "tavily-python>=0.7.25",
+    "numpy>=1.26",
 ]
 
 [dependency-groups]
@@ -87,5 +88,9 @@ module = [
     "yfinance",
     "fastapi",
     "starlette",
+    "apscheduler",
+    "apscheduler.schedulers.background",
+    "apscheduler.triggers.cron",
+    "numpy",
 ]
 ignore_missing_imports = true

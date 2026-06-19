@@ -1,0 +1,15 @@
+schema_version: 2
+change_id: "m3-weight-adapter"
+size: "M"
+stages: ["0-CHANGE", "1-SPEC", "2-DESIGN", "3-PLAN", "4-BUILD", "5-VERIFY", "6-SHIP"]
+current_stage: "6-SHIP"
+status: "active"
+created_at: "2026-06-19T09:00:00+08:00"
+updated_at: "2026-06-19T10:20:00+08:00"
+retry_count: 0
+last_tldr: "5-VERIFY 通过：ruff 0 errors, mypy 0 errors, 55 tests passed。12 AC 全部覆盖"
+last_next: "进入 6-SHIP，提交代码并创建 PR"
+last_risk: "ThesisStore 接口可能不存在，需在 DESIGN 阶段确认"
+last_progress_note: ""
+last_context_mode: "full"
+last_verified_at: ""
