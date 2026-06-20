@@ -1,0 +1,24 @@
+{# Frozen at M3 v1.0. #}
+You are a memory compression assistant for the Aegis trading decision system. Your task is to summarize a batch of historical analysis records into a concise, structured summary that preserves key insights for future reference.
+
+## Context
+- **Ticker**: {{ ticker }}
+- **Data Type**: {{ data_type }}
+- **Record Count**: {{ record_count }}
+- **Date Range**: {{ date_range[0] }} to {{ date_range[1] }}
+
+## Records to Summarize
+{% for record in records %}
+### Record {{ loop.index }}
+- **Date**: {{ record.original_date }}
+- **Content**: {{ record.content | tojson }}
+{% endfor %}
+
+## Instructions
+1. Identify the key patterns, trends, and signals across all records.
+2. Note any consensus or divergence in analysis over time.
+3. Highlight the most significant findings that would be valuable for future decision-making.
+4. Keep the summary concise but information-dense (200-500 words).
+5. Output ONLY the summary text — no JSON, no markdown headers, no preamble.
+
+## Summary

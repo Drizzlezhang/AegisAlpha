@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from loguru import logger
 from openai import AsyncOpenAI
 
 from aegis.utils.settings import settings
@@ -37,3 +38,23 @@ class LLMClient:
             "usage": resp.usage.model_dump() if resp.usage else {},
             "model": resp.model,
         }
+
+    async def embed(self, text: str, model: str | None = None) -> list[float]:
+        """Call OpenAI-compatible /embeddings endpoint.
+
+        Args:
+            text: Text to embed.
+            model: Embedding model name. Defaults to settings.EMBEDDING_MODEL.
+
+        Returns:
+            1536-dim embedding vector, or empty list on failure.
+        """
+        try:
+            resp = await self._client.embeddings.create(
+                model=model or settings.EMBEDDING_MODEL,
+                input=text,
+            )
+            return list(resp.data[0].embedding)
+        except Exception:
+            logger.exception("Embedding API call failed")
+            return []

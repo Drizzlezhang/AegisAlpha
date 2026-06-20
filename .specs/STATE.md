@@ -1,13 +1,14 @@
 # AegisAlpha — DevKit State
 
 ## Active Change
-- **change_id**: m3-weight-adapter
+- **change_id**: m3-memory-system
 - **current_stage**: 6-SHIP
 - **status**: in_progress
-- **updated_at**: 2026-06-19T10:20:00+08:00
+- **updated_at**: 2026-06-19T11:00:00+08:00
 
 ## Change History
-- m3-weight-adapter | 2026-06-19 | 6-SHIP | M3 Branch B — WeightAdapter + 观察期 + 双维度反馈
+- m3-memory-system | 2026-06-19 | 0-CHANGE | M3 Branch A — Memory System 四层完整实现
+- m3-weight-adapter | 2026-06-19 | 6-SHIP | M3 Branch B — WeightAdapter + 观察期 + 双维度反馈 (completed)
 - m3-weight-adapter | 2026-06-19 | 5-VERIFY | M3 Branch B — WeightAdapter + 观察期 + 双维度反馈
 - m3-weight-adapter | 2026-06-19 | 3-PLAN | M3 Branch B — WeightAdapter + 观察期 + 双维度反馈
 - m3-weight-adapter | 2026-06-19 | 2-DESIGN | M3 Branch B — WeightAdapter + 观察期 + 双维度反馈

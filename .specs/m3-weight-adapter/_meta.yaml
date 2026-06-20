@@ -3,7 +3,7 @@ change_id: "m3-weight-adapter"
 size: "M"
 stages: ["0-CHANGE", "1-SPEC", "2-DESIGN", "3-PLAN", "4-BUILD", "5-VERIFY", "6-SHIP"]
 current_stage: "6-SHIP"
-status: "active"
+status: "completed"
 created_at: "2026-06-19T09:00:00+08:00"
 updated_at: "2026-06-19T10:20:00+08:00"
 retry_count: 0

@@ -36,3 +36,13 @@ schedules:
       cron: "0 4 * * 0"  # 每周日凌晨 4:00 ET
       timezone: "US/Eastern"
       enabled: true
+
+  memory:
+    compression:
+      cron: "0 2 * * *"  # 每日凌晨 2:00 ET
+      timezone: "US/Eastern"
+      enabled: true
+    cleanup:
+      cron: "0 3 * * *"  # 每日凌晨 3:00 ET
+      timezone: "US/Eastern"
+      enabled: true
