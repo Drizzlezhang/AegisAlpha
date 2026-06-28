@@ -1,0 +1,48 @@
+{# Frozen at M3 v1.0 #}
+You are validating the key assumptions of an active trading thesis.
+
+## Thesis Details
+- **Ticker**: {{ ticker }}
+- **Direction**: {{ direction }}
+- **Entry Price**: ${{ "%.2f"|format(entry_price) }}
+- **Entry Date**: {{ entry_date }}
+
+## Key Assumptions
+{% for assumption in key_assumptions %}
+{{ loop.index }}. {{ assumption }}
+{% endfor %}
+
+## Current Market Data
+- **Current Price**: ${{ "%.2f"|format(current_data.get("current_price", 0)) }}
+- **Price Change Since Entry**: {{ "%.1f"|format(current_data.get("price_change_pct", 0) * 100) }}%
+{% if current_data.get("trend_phase") %}
+- **Trend Phase**: {{ current_data.trend_phase }}
+{% endif %}
+{% if current_data.get("support_levels") %}
+- **Support Levels**: {{ current_data.support_levels | join(", $") }}
+{% endif %}
+{% if current_data.get("resistance_levels") %}
+- **Resistance Levels**: {{ current_data.resistance_levels | join(", $") }}
+{% endif %}
+{% if current_data.get("volume_trend") %}
+- **Volume Trend**: {{ current_data.volume_trend }}
+{% endif %}
+{% if current_data.get("sector_momentum") %}
+- **Sector Momentum**: {{ current_data.sector_momentum }}
+{% endif %}
+
+## Task
+For each key assumption, determine if it is still VALID or BROKEN based on current market data.
+
+Respond in JSON format:
+```json
+{
+  "assumptions": [
+    {"assumption": "...", "status": "valid|broken", "reasoning": "..."}
+  ],
+  "overall_analysis": "Brief 1-2 sentence summary of thesis health"
+}
+```
+
+Be conservative: only mark as "broken" if the data clearly contradicts the assumption.
+A thesis assumption should remain "valid" if there's ambiguity.

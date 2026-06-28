@@ -46,3 +46,13 @@ schedules:
       cron: "0 3 * * *"  # 每日凌晨 3:00 ET
       timezone: "US/Eastern"
       enabled: true
+
+  thesis_validation:
+    cron: "0 6 * * 1-5"  # 每日盘前 6:00 ET 校验活跃 Thesis
+    timezone: "US/Eastern"
+    enabled: true
+
+  thesis_re_entry_check:
+    cron: "0 7 * * 1-5"  # 每日盘前 7:00 ET 检查 re-entry 条件
+    timezone: "US/Eastern"
+    enabled: true

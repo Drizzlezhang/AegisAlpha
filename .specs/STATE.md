@@ -1,13 +1,20 @@
 # AegisAlpha — DevKit State
 
 ## Active Change
-- **change_id**: m3-memory-system
+- **change_id**: m3-thesis-cards
 - **current_stage**: 6-SHIP
-- **status**: in_progress
-- **updated_at**: 2026-06-19T11:00:00+08:00
+- **status**: completed
+- **updated_at**: 2026-06-28T12:00:00+08:00
 
 ## Change History
-- m3-memory-system | 2026-06-19 | 0-CHANGE | M3 Branch A — Memory System 四层完整实现
+- m3-thesis-cards | 2026-06-28 | 6-SHIP | M3 Branch C — Thesis Cards 完整生命周期 (completed)
+- m3-thesis-cards | 2026-06-28 | 5-VERIFY | M3 Branch C — Thesis Cards: 766 tests, ruff/mypy clean
+- m3-thesis-cards | 2026-06-20 | 4-BUILD | M3 Branch C — Thesis Cards: 16 tasks, 5 waves
+- m3-thesis-cards | 2026-06-20 | 3-PLAN | M3 Branch C — Thesis Cards 完整生命周期
+- m3-thesis-cards | 2026-06-20 | 2-DESIGN | M3 Branch C — Thesis Cards 完整生命周期
+- m3-thesis-cards | 2026-06-20 | 1-SPEC | M3 Branch C — Thesis Cards 完整生命周期
+- m3-thesis-cards | 2026-06-20 | 0-CHANGE | M3 Branch C — Thesis Cards 完整生命周期
+- m3-memory-system | 2026-06-19 | 6-SHIP | M3 Branch A — Memory System 四层完整实现 (completed)
 - m3-weight-adapter | 2026-06-19 | 6-SHIP | M3 Branch B — WeightAdapter + 观察期 + 双维度反馈 (completed)
 - m3-weight-adapter | 2026-06-19 | 5-VERIFY | M3 Branch B — WeightAdapter + 观察期 + 双维度反馈
 - m3-weight-adapter | 2026-06-19 | 3-PLAN | M3 Branch B — WeightAdapter + 观察期 + 双维度反馈

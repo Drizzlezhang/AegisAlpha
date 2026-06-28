@@ -171,6 +171,6 @@ agents:
     tags: [passive, thesis]
     llm_dependency: true
     parallel_group: null
-    pipeline_mode: lightweight
-    enabled: false
+    pipeline_mode: full
+    enabled: true
     description: "Validates thesis key assumptions against current market data"

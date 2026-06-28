@@ -10,6 +10,7 @@ from aegis.api.routes import (
     pipeline,
     positions,
     recommendations,
+    thesis,
     triggers,
     weights,
     ws,
@@ -34,3 +35,4 @@ app.include_router(flows.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
 app.include_router(ws.router, prefix="/api/v1")
 app.include_router(weights.router, prefix="/api/v1")
+app.include_router(thesis.router, prefix="/api/v1")

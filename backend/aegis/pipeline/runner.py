@@ -34,6 +34,138 @@ def _inject_weight_snapshot() -> dict[str, dict[str, Any]]:
         return {}
 
 
+async def _post_recommendation_hook(state: PipelineState) -> None:
+    """Auto-create ThesisCards for buy recommendations that pass Risk Gate.
+
+    Only creates ThesisCards for buy/add actions. Skips hold/close/sell.
+    Must not block Pipeline — all failures are logged and swallowed.
+    """
+    try:
+        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+        from aegis.memory.long_term_store import LongTermStore
+        from aegis.memory.service import MemoryService
+        from aegis.memory.short_term_store import ShortTermStore
+        from aegis.memory.thesis_store import ThesisStore as MemoryThesisStore
+        from aegis.memory.vector_store import VectorStore
+        from aegis.memory.weight_adapter import WeightAdapter
+        from aegis.memory.weight_store import WeightStore
+        from aegis.services.thesis_service import ThesisService
+        from aegis.storage.thesis_store import ThesisStore
+
+        engine = create_engine(settings.DATABASE_URL)
+
+        def sync_session_factory() -> Session:
+            return Session(engine)
+
+        async_engine = create_async_engine(
+            settings.DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///"),
+            echo=False,
+        )
+
+        def async_session_factory() -> AsyncSession:
+            return AsyncSession(async_engine)
+
+        thesis_store = ThesisStore(async_session_factory)
+        short_term = ShortTermStore(sync_session_factory)
+        long_term = LongTermStore(sync_session_factory)
+        vector = VectorStore()
+        memory = MemoryService(short_term, long_term, vector)
+        weight_store = WeightStore()
+        memory_thesis_store = MemoryThesisStore()
+        weight_adapter = WeightAdapter(weight_store, memory_thesis_store)
+
+        thesis_service = ThesisService(
+            thesis_store=thesis_store,
+            memory=memory,
+            weight_adapter=weight_adapter,
+            long_term_store=long_term,
+            session_factory=sync_session_factory,
+        )
+
+        created_count = 0
+        for rec in state.recommendations:
+            if rec.action not in ("buy", "add"):
+                continue
+
+            ticker = rec.ticker
+
+            # Skip if active thesis already exists
+            if await thesis_service.has_active_thesis(ticker):
+                logger.debug(f"Thesis hook: skipping {ticker} — active thesis exists")
+                continue
+
+            # Derive direction from strategy
+            if rec.strategy == "covered_call":
+                direction = "cc"
+            else:
+                direction = "long"
+
+            # Derive entry_price from market_data
+            market = state.market_data.get(ticker, {})
+            entry_price = float(market.get("price", market.get("close", 0)))
+
+            # Derive target_price and stop_price from analyst_outputs
+            levels = state.analyst_outputs.get("levels", {}).get(ticker, {})
+            target_price = None
+            stop_price = None
+
+            resistance_levels = levels.get("resistance_levels", [])
+            if resistance_levels:
+                target_price = float(resistance_levels[0])
+
+            support_levels = levels.get("support_levels", [])
+            if support_levels:
+                stop_price = float(support_levels[0])
+
+            # Override with recommendation-specific stop_loss if available
+            if rec.stop_loss:
+                stop_price = float(rec.stop_loss.get("trigger_price", stop_price or 0))
+
+            # Build key_assumptions from rationale + debate
+            key_assumptions = [rec.rationale] if rec.rationale else []
+            debate = state.debate_results.get(ticker, {})
+            if debate:
+                direction_label = debate.get("direction", "")
+                confidence = debate.get("confidence", 0)
+                key_assumptions.append(
+                    f"Debate: {direction_label} (confidence={confidence:.0%})"
+                )
+
+            # Build recommendation dict for ThesisService
+            recommendation = {
+                "ticker": ticker,
+                "direction": direction,
+                "entry_mode": state.entry_mode.get(ticker, "active_right"),
+                "entry_price": entry_price,
+                "target_price": target_price,
+                "stop_price": stop_price,
+                "key_assumptions": key_assumptions,
+            }
+
+            try:
+                thesis_id = await thesis_service.create_from_recommendation(
+                    recommendation=recommendation,
+                    weight_snapshot=state.weight_snapshot,
+                    user_confirmed=True,
+                )
+                logger.info(
+                    f"Thesis hook: created thesis {thesis_id} for {ticker} "
+                    f"({direction}, {rec.strategy})"
+                )
+                created_count += 1
+            except ValueError as e:
+                logger.warning(f"Thesis hook: skipped {ticker} — {e}")
+            except Exception:
+                logger.exception(f"Thesis hook: failed to create thesis for {ticker}")
+
+        if created_count > 0:
+            logger.info(f"Thesis hook: created {created_count} thesis cards")
+
+    except Exception:
+        logger.exception("Thesis hook failed (non-blocking)")
+
+
 async def _post_pipeline_archive(state: PipelineState) -> None:
     """Archive pipeline outputs to Memory. Must not block Pipeline.
 
@@ -163,6 +295,9 @@ async def run_full(
 
     # Archive pipeline outputs to Memory (non-blocking)
     await _post_pipeline_archive(final)
+
+    # Auto-create ThesisCards for buy recommendations (non-blocking)
+    await _post_recommendation_hook(final)
 
     return final
 

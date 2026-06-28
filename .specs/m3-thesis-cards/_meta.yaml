@@ -1,0 +1,15 @@
+schema_version: 2
+change_id: "m3-thesis-cards"
+size: "L"
+stages: ["0-CHANGE", "1-SPEC", "2-DESIGN", "3-PLAN", "4-BUILD", "5-VERIFY", "6-SHIP"]
+current_stage: "4-BUILD"
+status: "active"
+created_at: "2026-06-20T10:00:00+08:00"
+updated_at: "2026-06-20T12:00:00+08:00"
+retry_count: 0
+last_tldr: ""
+last_next: "Wave 1: T01 ThesisStore + T02 Prompt 模板并行执行"
+last_risk: ""
+last_progress_note: "开始 Wave 1 (T01+T02)"
+last_context_mode: "full"
+last_verified_at: ""
