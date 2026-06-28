@@ -22,15 +22,21 @@ class TestMemoryJobsRegistered:
                         "compression": {"cron": "0 2 * * *", "timezone": "US/Eastern"},
                         "cleanup": {"cron": "0 3 * * *", "timezone": "US/Eastern"},
                     },
+                    "kol_attribution": {
+                        "cron": "0 5 * * *",
+                        "timezone": "US/Eastern",
+                        "enabled": True,
+                    },
                 }
             }
             mock_load_memory.return_value = {}
 
             scheduler = create_scheduler()
 
-            # Check all 4 jobs registered
+            # Check all 5 jobs registered
             job_ids = [call.kwargs.get("id") for call in mock_scheduler.add_job.call_args_list]
             assert "observation_check" in job_ids
             assert "weight_update" in job_ids
             assert "memory_compression" in job_ids
             assert "short_term_cleanup" in job_ids
+            assert "kol_attribution_daily" in job_ids

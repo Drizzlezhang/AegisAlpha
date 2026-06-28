@@ -20,18 +20,33 @@ class MockLLMClient:
 
 
 class MockMemory:
-    """Mock MemoryInterface for testing."""
+    """Mock MemoryInterface for testing — v1.1 compatible."""
 
-    async def read(self, scope: str, query: dict[str, Any]) -> list[dict[str, Any]]:
+    async def read(
+        self, scope: str, query: dict[str, Any], limit: int = 10
+    ) -> list[dict[str, Any]]:
         return []
 
-    async def write(self, scope: str, data: dict[str, Any]) -> None:
+    async def write(
+        self, scope: str, data: dict[str, Any], ttl_days: int | None = None
+    ) -> None:
         pass
 
-    async def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
+    async def search(
+        self,
+        query: str,
+        collection: str = "default",
+        top_k: int = 5,
+        filter: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         return []
 
-    async def summarize(self, ticker: str, date_range: tuple[str, str]) -> dict[str, Any]:
+    async def summarize(
+        self,
+        ticker: str | None,
+        date_range: tuple[str, str],
+        data_type: str = "",
+    ) -> dict[str, Any]:
         return {}
 
     async def archive_scratchpad(self, pipeline_id: str, scratchpad: dict[str, str]) -> None:

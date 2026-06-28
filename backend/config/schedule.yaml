@@ -56,3 +56,8 @@ schedules:
     cron: "0 7 * * 1-5"  # 每日盘前 7:00 ET 检查 re-entry 条件
     timezone: "US/Eastern"
     enabled: true
+
+  kol_attribution:
+    cron: "0 5 * * *"  # 每日凌晨 5:00 ET KOL 事后归因
+    timezone: "US/Eastern"
+    enabled: true

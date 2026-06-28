@@ -12,8 +12,11 @@ from aegis.memory.thesis_store import ThesisStore as MemoryThesisStore
 from aegis.memory.vector_store import VectorStore
 from aegis.memory.weight_adapter import WeightAdapter
 from aegis.memory.weight_store import WeightStore
+from aegis.services.kol_attribution import KOLAttributionService
 from aegis.services.thesis_service import ThesisService
+from aegis.storage.kol_store import KOLStore
 from aegis.storage.thesis_store import ThesisStore
+from aegis.tools.market.yfinance_adapter import YFinanceAdapter
 from aegis.utils.settings import Settings, settings
 
 
@@ -59,3 +62,25 @@ def get_thesis_service() -> ThesisService:
         long_term_store=long_term,
         session_factory=sync_session_factory,
     )
+
+
+def get_kol_store() -> KOLStore:
+    """Build KOLStore with async session factory."""
+    from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+    async_engine = create_async_engine(
+        settings.DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///"),
+        echo=False,
+    )
+
+    def async_session_factory() -> AsyncSession:
+        return AsyncSession(async_engine)
+
+    return KOLStore(async_session_factory)
+
+
+def get_attribution_service() -> KOLAttributionService:
+    """Build KOLAttributionService with KOLStore and YFinanceAdapter."""
+    kol_store = get_kol_store()
+    price_fetcher = YFinanceAdapter()
+    return KOLAttributionService(kol_store=kol_store, price_fetcher=price_fetcher)

@@ -160,8 +160,7 @@ agents:
     llm_dependency: true
     parallel_group: signal_analysts
     pipeline_mode: full
-    enabled: false
-    description: "Collects KOL signals from X/StockTwits/Reddit"
+    enabled: true
 
   thesis_validator:
     name: thesis_validator

@@ -26,6 +26,9 @@ from aegis.memory.thesis_store import ThesisStore
 from aegis.memory.vector_store import VectorStore
 from aegis.memory.weight_adapter import WeightAdapter
 from aegis.memory.weight_store import WeightStore
+from aegis.services.kol_attribution import KOLAttributionService
+from aegis.storage.kol_store import KOLStore
+from aegis.tools.market.yfinance_adapter import YFinanceAdapter
 from aegis.utils.settings import settings
 
 # ---------------------------------------------------------------------------
@@ -103,6 +106,33 @@ def _short_term_cleanup_job() -> None:
             logger.info(f"Scheduler: cleaned up {deleted} expired short-term records")
     except Exception:
         logger.exception("Scheduler: short_term_cleanup_job failed")
+    finally:
+        engine.dispose()
+
+
+def _kol_attribution_job() -> None:
+    """Daily job: run KOL post-hoc attribution (30d + 60d supplementary)."""
+    logger.info("Scheduler: running kol_attribution_job")
+    engine = create_engine(settings.DATABASE_URL)
+    try:
+        with Session(engine) as session:
+            kol_store = KOLStore(lambda: session)
+            price_fetcher = YFinanceAdapter()
+            service = KOLAttributionService(kol_store=kol_store, price_fetcher=price_fetcher)
+
+            # Run 30d attribution
+            stats_30d = asyncio.get_event_loop().run_until_complete(
+                service.run_30d_attribution()
+            )
+            logger.info(f"Scheduler: KOL 30d attribution: {stats_30d}")
+
+            # Run 60d supplementary
+            stats_60d = asyncio.get_event_loop().run_until_complete(
+                service.run_60d_supplementary()
+            )
+            logger.info(f"Scheduler: KOL 60d supplementary: {stats_60d}")
+    except Exception:
+        logger.exception("Scheduler: kol_attribution_job failed")
     finally:
         engine.dispose()
 
@@ -187,6 +217,23 @@ def create_scheduler() -> BackgroundScheduler:
         replace_existing=True,
     )
     logger.info(f"Scheduler: short_term_cleanup job registered (cron={clean_cron}, tz={clean_tz})")
+
+    # KOL attribution — daily at 5:00 AM ET
+    kol_cfg = config.get("schedules", {}).get("kol_attribution", {})
+    kol_cron = kol_cfg.get("cron", "0 5 * * *")
+    kol_tz = kol_cfg.get("timezone", "US/Eastern")
+    kol_enabled = kol_cfg.get("enabled", True)
+    if kol_enabled:
+        scheduler.add_job(
+            _kol_attribution_job,
+            trigger=CronTrigger.from_crontab(kol_cron, timezone=kol_tz),
+            id="kol_attribution_daily",
+            name="KOL attribution daily",
+            replace_existing=True,
+        )
+        logger.info(f"Scheduler: kol_attribution job registered (cron={kol_cron}, tz={kol_tz})")
+    else:
+        logger.info("Scheduler: kol_attribution job disabled in config")
 
     return scheduler
 

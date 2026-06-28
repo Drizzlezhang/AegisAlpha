@@ -7,6 +7,7 @@ from aegis.api.routes import (
     agents,
     flows,
     health,
+    kol,
     pipeline,
     positions,
     recommendations,
@@ -36,3 +37,4 @@ app.include_router(agents.router, prefix="/api/v1")
 app.include_router(ws.router, prefix="/api/v1")
 app.include_router(weights.router, prefix="/api/v1")
 app.include_router(thesis.router, prefix="/api/v1")
+app.include_router(kol.router, prefix="/api/v1")

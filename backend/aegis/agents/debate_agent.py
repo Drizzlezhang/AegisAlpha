@@ -83,6 +83,7 @@ class DebateAgent(BaseAgent):
         """Run debate rounds for a single ticker. Returns (result, total_tokens)."""
         factor_scores = self._get_factor_scores(ticker, state)
         fund_flow_context = self._build_fund_flow_context(state)
+        kol_context = self._build_kol_context(ticker, state)
         debate_history: list[dict[str, Any]] = []
         total_tokens = 0
         prev_direction: str | None = None
@@ -92,13 +93,13 @@ class DebateAgent(BaseAgent):
         for round_num in range(1, self.max_rounds + 1):
             # --- Bull ---
             bull_arg, bt = await self._call_bull(
-                ticker, factor_scores, debate_history, fund_flow_context
+                ticker, factor_scores, debate_history, fund_flow_context, kol_context
             )
             total_tokens += bt
 
             # --- Bear ---
             bear_arg, bet = await self._call_bear(
-                ticker, factor_scores, debate_history, fund_flow_context
+                ticker, factor_scores, debate_history, fund_flow_context, kol_context
             )
             total_tokens += bet
 
@@ -168,6 +169,7 @@ class DebateAgent(BaseAgent):
         factor_scores: list[dict[str, Any]],
         debate_history: list[dict[str, Any]],
         fund_flow_context: str = "",
+        kol_context: str = "",
     ) -> tuple[str, int]:
         """Render bull prompt and call LLM. Returns (argument, tokens_used)."""
         prev = self._previous_rounds(debate_history)
@@ -177,6 +179,7 @@ class DebateAgent(BaseAgent):
             factor_scores=factor_scores,
             smart_money_context="",
             fund_flow_context=fund_flow_context,
+            kol_context=kol_context,
             bull_previous=prev.get("bull"),
             bear_previous=prev.get("bear"),
             judge_previous=prev.get("judge"),
@@ -194,6 +197,7 @@ class DebateAgent(BaseAgent):
         factor_scores: list[dict[str, Any]],
         debate_history: list[dict[str, Any]],
         fund_flow_context: str = "",
+        kol_context: str = "",
     ) -> tuple[str, int]:
         """Render bear prompt and call LLM. Returns (argument, tokens_used)."""
         prev = self._previous_rounds(debate_history)
@@ -203,6 +207,7 @@ class DebateAgent(BaseAgent):
             factor_scores=factor_scores,
             smart_money_context="",
             fund_flow_context=fund_flow_context,
+            kol_context=kol_context,
             bull_previous=prev.get("bull"),
             bear_previous=prev.get("bear"),
             judge_previous=prev.get("judge"),
@@ -303,6 +308,43 @@ class DebateAgent(BaseAgent):
             parts.append(f"Summary: {narrative}")
 
         return "\n".join(parts)
+
+    @staticmethod
+    def _build_kol_context(ticker: str, state: PipelineState) -> str:
+        """Build KOL signal context for debate injection.
+
+        Filters: reliability >= 0.6, max 5 signals per ticker.
+        Returns formatted string or empty string.
+        """
+        kol_data = state.kol_signals.get(ticker, {})
+        signals = kol_data.get("signals", [])
+        if not signals:
+            return ""
+
+        # Filter by reliability >= 0.6
+        reliable = [s for s in signals if s.get("reliability_score", 0) >= 0.6]
+        if not reliable:
+            return ""
+
+        # Max 5 signals
+        reliable = reliable[:5]
+
+        lines = [
+            "## Supplementary — KOL Social Sentiment (do NOT treat as primary evidence)",
+            "",
+        ]
+        for s in reliable:
+            direction = s.get("direction", "unknown")
+            handle = s.get("handle", "unknown")
+            source = s.get("source", "unknown")
+            reasoning = (s.get("reasoning", "") or "")[:100]
+            reliability = s.get("reliability_score", 0)
+            lines.append(
+                f"- [{direction.upper()}] {handle} ({source}, "
+                f"reliability={reliability:.2f}): {reasoning}"
+            )
+
+        return "\n".join(lines)
 
     @staticmethod
     def _previous_rounds(

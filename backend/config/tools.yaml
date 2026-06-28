@@ -10,6 +10,7 @@ categories:
   - liquidity
   - options_chain
   - broker
+  - social
 
 tools:
   - name: yfinance
@@ -235,3 +236,43 @@ tools:
       recovery_timeout: 120
     fallback: null
     bound_agents: [fund_flow_agent, macro_analyst]
+
+  # --- M3 Branch D: Social Tools ---
+  - name: x_search
+    class: aegis.tools.social.x_tool.XSearchTool
+    category: social
+    tags: [social, kol, x, twitter]
+    rate_limit:
+      max_calls: 10
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [kol_tracker]
+
+  - name: stocktwits_fetch
+    class: aegis.tools.social.stocktwits_tool.StockTwitsTool
+    category: social
+    tags: [social, kol, stocktwits, sentiment]
+    rate_limit:
+      max_calls: 30
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [kol_tracker]
+
+  - name: reddit_fetch
+    class: aegis.tools.social.reddit_tool.RedditTool
+    category: social
+    tags: [social, kol, reddit, sentiment]
+    rate_limit:
+      max_calls: 30
+      period: 60
+    circuit_breaker:
+      failure_threshold: 3
+      recovery_timeout: 120
+    fallback: null
+    bound_agents: [kol_tracker]

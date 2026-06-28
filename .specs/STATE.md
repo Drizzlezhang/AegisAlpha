@@ -1,12 +1,19 @@
 # AegisAlpha — DevKit State
 
 ## Active Change
-- **change_id**: m3-thesis-cards
+- **change_id**: m3-kol-tracker
 - **current_stage**: 6-SHIP
-- **status**: completed
-- **updated_at**: 2026-06-28T12:00:00+08:00
+- **status**: in_progress
+- **updated_at**: 2026-06-28T20:15:00+08:00
 
 ## Change History
+- m3-kol-tracker | 2026-06-28 | 6-SHIP | M3 Branch D — KOL Tracker: committing and pushing
+- m3-kol-tracker | 2026-06-28 | 5-VERIFY | M3 Branch D — KOL Tracker: 845 tests, mypy clean
+- m3-kol-tracker | 2026-06-28 | 4-BUILD | M3 Branch D — KOL Tracker: all 5 waves complete
+- m3-kol-tracker | 2026-06-28 | 3-PLAN | M3 Branch D — KOL Tracker: 16 tasks, 5 waves
+- m3-kol-tracker | 2026-06-28 | 2-DESIGN | M3 Branch D — KOL Tracker: 5 ADRs, component split, API design
+- m3-kol-tracker | 2026-06-28 | 1-SPEC | M3 Branch D — KOL Tracker: 12 FRs, 14 ACs, 4 NFRs
+- m3-kol-tracker | 2026-06-28 | 0-CHANGE | M3 Branch D — KOL Tracker + 事后归因
 - m3-thesis-cards | 2026-06-28 | 6-SHIP | M3 Branch C — Thesis Cards 完整生命周期 (completed)
 - m3-thesis-cards | 2026-06-28 | 5-VERIFY | M3 Branch C — Thesis Cards: 766 tests, ruff/mypy clean
 - m3-thesis-cards | 2026-06-20 | 4-BUILD | M3 Branch C — Thesis Cards: 16 tasks, 5 waves
