@@ -61,3 +61,13 @@ schedules:
     cron: "0 5 * * *"  # 每日凌晨 5:00 ET KOL 事后归因
     timezone: "US/Eastern"
     enabled: true
+
+  reports:
+    weekly:
+      cron: "0 6 * * 0"  # 每周日凌晨 6:00 ET
+      timezone: "US/Eastern"
+      enabled: true
+    monthly:
+      cron: "0 6 1 * *"  # 每月 1 号凌晨 6:00 ET
+      timezone: "US/Eastern"
+      enabled: true

@@ -21,13 +21,16 @@ from aegis.llm.client import LLMClient
 from aegis.memory.compressor import MemoryCompressor
 from aegis.memory.long_term_store import LongTermStore
 from aegis.memory.observation_period import ObservationPeriodManager
+from aegis.memory.service import MemoryService
 from aegis.memory.short_term_store import ShortTermStore
 from aegis.memory.thesis_store import ThesisStore
 from aegis.memory.vector_store import VectorStore
 from aegis.memory.weight_adapter import WeightAdapter
 from aegis.memory.weight_store import WeightStore
 from aegis.services.kol_attribution import KOLAttributionService
+from aegis.services.report_generator import ReportGenerator
 from aegis.storage.kol_store import KOLStore
+from aegis.storage.thesis_store import ThesisStore as StorageThesisStore
 from aegis.tools.market.yfinance_adapter import YFinanceAdapter
 from aegis.utils.settings import settings
 
@@ -137,6 +140,112 @@ def _kol_attribution_job() -> None:
         engine.dispose()
 
 
+def _weekly_report_job() -> None:
+    """Weekly job: generate weekly report every Sunday."""
+    logger.info("Scheduler: running weekly_report_job")
+    engine = create_engine(settings.DATABASE_URL)
+    try:
+        with Session(engine) as session:
+
+            def sync_session_factory() -> Session:
+                return Session(engine)
+
+            short_term = ShortTermStore(sync_session_factory)
+            long_term = LongTermStore(sync_session_factory)
+            vector = VectorStore(llm_client=LLMClient())
+            memory = MemoryService(short_term, long_term, vector)
+
+            weight_store = WeightStore()
+
+            from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+            async_engine = create_async_engine(
+                settings.DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///"),
+                echo=False,
+            )
+
+            def async_session_factory() -> AsyncSession:
+                return AsyncSession(async_engine)
+
+            thesis_store = StorageThesisStore(async_session_factory)
+            kol_store = KOLStore(lambda: session)
+            llm_client = LLMClient()
+
+            generator = ReportGenerator(
+                memory=memory,
+                weight_store=weight_store,
+                thesis_store=thesis_store,
+                kol_store=kol_store,
+                llm_client=llm_client,
+            )
+
+            report = asyncio.get_event_loop().run_until_complete(
+                generator.generate_weekly()
+            )
+            logger.info(
+                f"Scheduler: weekly report generated "
+                f"(date={report.get('date')}, "
+                f"markdown_len={len(report.get('markdown', ''))})"
+            )
+    except Exception:
+        logger.exception("Scheduler: weekly_report_job failed")
+    finally:
+        engine.dispose()
+
+
+def _monthly_report_job() -> None:
+    """Monthly job: generate monthly report on the 1st of each month."""
+    logger.info("Scheduler: running monthly_report_job")
+    engine = create_engine(settings.DATABASE_URL)
+    try:
+        with Session(engine) as session:
+
+            def sync_session_factory() -> Session:
+                return Session(engine)
+
+            short_term = ShortTermStore(sync_session_factory)
+            long_term = LongTermStore(sync_session_factory)
+            vector = VectorStore(llm_client=LLMClient())
+            memory = MemoryService(short_term, long_term, vector)
+
+            weight_store = WeightStore()
+
+            from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+            async_engine = create_async_engine(
+                settings.DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///"),
+                echo=False,
+            )
+
+            def async_session_factory() -> AsyncSession:
+                return AsyncSession(async_engine)
+
+            thesis_store = StorageThesisStore(async_session_factory)
+            kol_store = KOLStore(lambda: session)
+            llm_client = LLMClient()
+
+            generator = ReportGenerator(
+                memory=memory,
+                weight_store=weight_store,
+                thesis_store=thesis_store,
+                kol_store=kol_store,
+                llm_client=llm_client,
+            )
+
+            report = asyncio.get_event_loop().run_until_complete(
+                generator.generate_monthly()
+            )
+            logger.info(
+                f"Scheduler: monthly report generated "
+                f"(date={report.get('date')}, "
+                f"markdown_len={len(report.get('markdown', ''))})"
+            )
+    except Exception:
+        logger.exception("Scheduler: monthly_report_job failed")
+    finally:
+        engine.dispose()
+
+
 # ---------------------------------------------------------------------------
 # Scheduler factory
 # ---------------------------------------------------------------------------
@@ -234,6 +343,45 @@ def create_scheduler() -> BackgroundScheduler:
         logger.info(f"Scheduler: kol_attribution job registered (cron={kol_cron}, tz={kol_tz})")
     else:
         logger.info("Scheduler: kol_attribution job disabled in config")
+
+    # Weekly report — Sunday at 6:00 AM ET
+    reports_cfg = config.get("schedules", {}).get("reports", {})
+    weekly_cfg = reports_cfg.get("weekly", {})
+    weekly_cron = weekly_cfg.get("cron", "0 6 * * 0")
+    weekly_tz = weekly_cfg.get("timezone", "US/Eastern")
+    weekly_enabled = weekly_cfg.get("enabled", True)
+    if weekly_enabled:
+        scheduler.add_job(
+            _weekly_report_job,
+            trigger=CronTrigger.from_crontab(weekly_cron, timezone=weekly_tz),
+            id="weekly_report",
+            name="Weekly report generation",
+            replace_existing=True,
+        )
+        logger.info(
+            f"Scheduler: weekly_report job registered (cron={weekly_cron}, tz={weekly_tz})"
+        )
+    else:
+        logger.info("Scheduler: weekly_report job disabled in config")
+
+    # Monthly report — 1st of month at 6:00 AM ET
+    monthly_cfg = reports_cfg.get("monthly", {})
+    monthly_cron = monthly_cfg.get("cron", "0 6 1 * *")
+    monthly_tz = monthly_cfg.get("timezone", "US/Eastern")
+    monthly_enabled = monthly_cfg.get("enabled", True)
+    if monthly_enabled:
+        scheduler.add_job(
+            _monthly_report_job,
+            trigger=CronTrigger.from_crontab(monthly_cron, timezone=monthly_tz),
+            id="monthly_report",
+            name="Monthly report generation",
+            replace_existing=True,
+        )
+        logger.info(
+            f"Scheduler: monthly_report job registered (cron={monthly_cron}, tz={monthly_tz})"
+        )
+    else:
+        logger.info("Scheduler: monthly_report job disabled in config")
 
     return scheduler
 
