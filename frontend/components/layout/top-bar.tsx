@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard" },
-  { href: "/positions", label: "Positions" },
+  { href: "/thesis", label: "Thesis" },
+  { href: "/kol", label: "KOL" },
+  { href: "/memory", label: "Memory" },
   { href: "/recommendations", label: "Recommendations" },
   { href: "/triggers", label: "Triggers" },
   { href: "/flows", label: "Flows" },
@@ -89,6 +92,9 @@ export default function TopBar() {
           timeZoneName: "short",
         })}
       </span>
+
+      {/* Theme Toggle */}
+      <ThemeToggle />
     </header>
   );
 }

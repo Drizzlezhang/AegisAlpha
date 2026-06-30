@@ -23,6 +23,7 @@
   --aegis-brand: hsl(210, 100%, 56%);
   --aegis-brand-hover: hsl(210, 100%, 62%);
   --aegis-brand-muted: hsl(210, 60%, 25%);
+  --aegis-text-on-brand: #fff;
 
   /* 信号色 */
   --aegis-signal-bull: hsl(145, 65%, 50%);
@@ -69,6 +70,28 @@
     --ring: 210 100% 56%;
     --radius: 0.5rem;
   }
+}
+
+/* ─── Light Mode Theme ─── */
+[data-theme="light"] {
+  --aegis-bg-base: hsl(220, 15%, 96%);
+  --aegis-bg-surface: hsl(0, 0%, 100%);
+  --aegis-bg-elevated: hsl(220, 12%, 94%);
+  --aegis-bg-overlay: hsla(220, 15%, 8%, 0.1);
+
+  --aegis-text-primary: hsl(220, 20%, 10%);
+  --aegis-text-secondary: hsl(220, 10%, 40%);
+  --aegis-text-tertiary: hsl(220, 8%, 55%);
+  --aegis-text-disabled: hsl(220, 8%, 70%);
+
+  --aegis-border-default: hsl(220, 12%, 88%);
+  --aegis-border-subtle: hsl(220, 12%, 94%);
+
+  /* Signal colors remain unchanged for accessibility */
+  /* Brand: slightly darker for light bg */
+  --aegis-brand: hsl(210, 100%, 50%);
+  --aegis-brand-hover: hsl(210, 100%, 44%);
+  --aegis-brand-muted: hsl(210, 60%, 92%);
 }
 
 /* ─── Base styles ─── */
